@@ -1,0 +1,50 @@
+{
+	"name": "zenstack-ui-monorepo",
+	"private": true,
+	"workspaces": [
+		"example-client",
+		"example-server",
+		"package"
+	],
+	"scripts": {
+		"dev": "bun run --filter '*' dev",
+		"deploy": "bun run --filter '*' deploy",
+		"dev:client": "cd example-client && bun run dev",
+		"dev:server": "cd example-server && bun run dev",
+		"deploy:client": "bun run --filter 'example-client' deploy",
+		"deploy:server": "bun run --filter 'example-server' deploy",
+		"sync-env": "doppler -p zenstack-ui-demo -c dev secrets download --no-file --format env | tee .env example-client/.dev.vars example-server/.dev.vars > /dev/null",
+		"push-env-to-workers": "cd example-server && doppler secrets --project zenstack-ui-demo --config dev --json | jq -c 'with_entries(.value = .value.computed)' | wrangler secret bulk --name zenstack-ui-demo-server",
+		"db:push": "bun run db:gen && bunx prisma db push --schema=./example-server/prisma/schema.prisma",
+		"db:gen": "bunx zenstack generate --schema=./example-server/schema.zmodel --no-compile --output ./example-client/src/zod && bunx zenstack generate --schema=./example-server/schema.zmodel && bunx prisma generate --schema=./example-server/prisma/schema.prisma",
+		"db:studio": "bunx prisma studio --schema=./example-server/prisma/schema.prisma",
+		"reset-node": "rm -rf node_modules && rm -rf example-client/node_modules && rm -rf example-server/node_modules && bun i && bun run db:gen",
+		"lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+	},
+	"devDependencies": {
+		"@eslint/compat": "^1.2.2",
+		"@eslint/js": "^9.14.0",
+		"@stylistic/eslint-plugin": "^2.10.1",
+		"@types/eslint__js": "^8.42.3",
+		"eslint": "^9.14.0",
+		"eslint-plugin-jsonc": "^2.17.0",
+		"eslint-plugin-react": "^7.37.2",
+		"eslint-plugin-react-hooks": "^4.6.2",
+		"eslint-plugin-simple-import-sort": "^12.1.1",
+		"eslint-plugin-tailwindcss": "^3.17.5",
+		"globals": "^15.12.0",
+		"typescript": "^5.6.3",
+		"typescript-eslint": "^8.13.0",
+		"wrangler": "^3.86.1"
+	},
+	"trustedDependencies": [
+		"@prisma/client",
+		"@prisma/engines",
+		"@swc/core",
+		"esbuild",
+		"prisma",
+		"puppeteer",
+		"server",
+		"zenstack"
+	]
+}

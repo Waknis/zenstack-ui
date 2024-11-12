@@ -1,0 +1,50 @@
+// ================================================================================
+// Zenstack Schema Setup
+// ================================================================================
+
+plugin hooks {
+	provider = '@zenstackhq/tanstack-query'
+	target = 'react'
+	output = '../example-client/src/zenstack'
+}
+
+plugin zod {
+	provider = '@core/zod'
+}
+
+generator client {
+	provider = "prisma-client-js"
+	previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+	provider = "postgresql"
+	url = env("DATABASE_URL")
+	directUrl = env("DIRECT_URL")
+}
+
+// ================================================================================
+// Models
+// ================================================================================
+
+model Person {
+	name  String @id
+	items Item[]
+}
+
+model Item {
+	id        Int           @id @default(autoincrement())
+	name      String
+	category  ITEM_CATEGORY
+	owner     Person        @relation(fields: [ownerName], references: [name])
+	ownerName String
+}
+
+enum ITEM_CATEGORY {
+	Food
+	Furniture
+	Electronics
+	Tools_And_Hardware
+	Decorations
+	Other
+}

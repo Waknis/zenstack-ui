@@ -1,3 +1,16 @@
+# Zenstack generated
+**/zenstack
+**/zod
+**/prisma
+
+# Project
+**/.wrangler
+**/migrations
+.dev.vars
+package-lock.json
+.idea/*
+.DS_Store
+
 # Logs
 logs
 *.log
@@ -128,3 +141,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Local Netlify folder
+.netlify

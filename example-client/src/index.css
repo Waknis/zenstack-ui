@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	font-family: system-ui, Inter, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	/* Mantine Overrides */
+	--mantine-color-body: light-dark(white, #09090B);
+
+	/* Custom Colors */
+	--shadcn-darkest: #09090B;
+	--shadcn-dark: #18181B;
+	--shadcn-light: #FAFAFA;
+	--sidebar-bg: light-dark(#FBFBFB, #151518);
+	--btn-default: light-dark(var(--shadcn-dark), var(--shadcn-light));
+	--btn-reverse: light-dark(var(--shadcn-light), var(--shadcn-dark));
+	--btn-secondary: light-dark(#F4F4F5, #27272A);
+	--bd-light: light-dark(#E4E4E7, #27272A);
+	--bd-strong: light-dark(#E4E4E7, #37373b);
+
+	/* Temp */
+	--color-hover: light-dark(#eeeeef, #1e1e20);
+	--focus-ring-color: light-dark(#A1A1AA, #D4D4D8);
+}
+
+/* Add custom focus ring color for Mantine (used in theme object) */
+.focus-auto {
+	&:focus-visible {
+		outline: 2px solid var(--focus-ring-color);
+		outline-offset: 2px;
+	}
+}
+
+/* Remove handlebars for react-slider */
+.__rcs-handle-button { display: none !important; }
+.__rcs-handle-arrow { border: none !important; }
+
+/* Hide react query devtools */
+div:has(> .tsqd-open-btn) { @apply hidden; }
+
+/* Main Page Styles */
+.page {
+	@apply flex size-full;
+
+	.left-list {
+		@apply flex w-2/5 min-w-[40%] max-w-[800px] flex-col border-r border-r-bd-light px-4;
+
+		.left-list__header {
+			@apply flex items-center justify-between mb-2 mt-3 font-semibold;
+		}
+
+		.left-list__title {
+			/* @apply mx-4 mb-1 mt-3 text-lg font-semibold; */
+		}
+	}
+
+	.right-detail {
+		@apply flex flex-col h-full grow p-4 pb-0 size-full;
+	}
+
+	.form-container {
+		@apply flex grow flex-col justify-between;
+	}
+
+}
+
+.list-scrollarea {
+	@apply h-full p-4 py-0;
+}
+
+.list-item {
+	@apply mb-2 flex items-center justify-between rounded-lg border border-bd-light bg-sidebar-bg px-3 py-2.5 transition-colors duration-100 hover:cursor-pointer hover:bg-bd-light;
+
+	&[data-selected="true"] {
+		@apply bg-bd-light;
+	}
+}
+
+/* Form Section Gap */
+.form-section > div:not(:first-child) {
+	@apply mt-4;
+}
+
+.custom-form .mantine-Checkbox-root {
+	@apply mt-2;
+}

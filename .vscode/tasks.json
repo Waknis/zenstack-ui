@@ -1,0 +1,57 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+
+		// Server & Client split terminal task
+		{
+			"label": "dev",
+			"dependsOrder": "parallel",
+			"dependsOn": [
+				"dev:client",
+				"dev:server"
+			],
+			"presentation": {
+				"group": "both",
+				"panel": "shared"
+			},
+			"isBackground": true,
+			"problemMatcher": [
+				"$tsc-watch"
+			]
+		},
+
+		// Client task
+		{
+			"label": "dev:client",
+			"type": "shell",
+			"command": "bun run dev:client",
+			"presentation": {
+				"group": "both",
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": true
+			},
+			"isBackground": true,
+			"problemMatcher": [
+				"$tsc-watch"
+			]
+		},
+
+		// Server task
+		{
+			"label": "dev:server",
+			"type": "shell",
+			"command": "bun run dev:server",
+			"presentation": {
+				"group": "both",
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": true
+			},
+			"isBackground": true,
+			"problemMatcher": [
+				"$tsc-watch"
+			]
+		}
+	]
+}

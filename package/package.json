@@ -1,0 +1,45 @@
+{
+	"name": "zenstack-ui",
+	"description": "Customizable react components for zenstack (forms/lists/etc.)",
+	"version": "0.0.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kirankunigiri/zenstack-ui",
+		"directory": "package"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"import": "./dist/index.mjs",
+		"require": "./dist/index.js"
+	},
+	"files": ["dist"],
+	"scripts": {
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"release": "bun run build && changeset publish",
+		"lint": "tsc"
+	},
+	"keywords": [
+		"react",
+		"zenstack",
+		"prisma",
+		"forms",
+		"lists",
+		"tables",
+		"form-validation"
+	],
+	"author": "Kiran Kunigiri",
+	"license": "MIT",
+	"dependencies": {
+		"@mantine/form": "^7.13.5",
+		"@mantine/hooks": "^7.13.5",
+		"mantine-form-zod-resolver": "^1.1.0",
+		"zod": "^3.23.8"
+	},
+	"devDependencies": {
+		"@types/react": "^18.3.12",
+		"tsup": "^8.3.5",
+		"typescript": "^5.6.3",
+		"vite": "^5.4.10"
+	}
+}

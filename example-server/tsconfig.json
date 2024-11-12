@@ -1,0 +1,16 @@
+{
+	"extends": "../tsconfig.example.json",
+	"compilerOptions": {
+
+		/* Module - Transpile with Bun */
+		"composite": true,
+		"module": "ES2022",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"sourceMap": true,
+		"lib": ["ES2022"],
+		"types": ["bun-types"]
+	},
+	"include": ["src", "lambda", "lib"],
+	"references": [{ "path": "../example-client/tsconfig.json" }]
+}
