@@ -40,20 +40,15 @@ jobs:
 
             - run: cp README.md package/README.md
 
-            - uses: pnpm/action-setup@v4
+            - uses: oven-sh/setup-bun@v2
               with:
-                  version: 8
-
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: '20.x'
+                  bun-version: latest
                   registry-url: 'https://registry.npmjs.org'
-                  cache: "pnpm"
 
-            - run: pnpm install --frozen-lockfile --filter ./package
+            - run: bun install --cwd package
 
-            - run: pnpm --filter ./package run build
+            - run: bun run --cwd package build
 
-            - run: cd package && npm publish --access public
+            - run: cd package && bun publish --access public
               env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
