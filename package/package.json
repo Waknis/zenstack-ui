@@ -1,7 +1,7 @@
 {
 	"name": "zenstack-ui",
 	"description": "Customizable react components for zenstack (forms/lists/etc.)",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/kirankunigiri/zenstack-ui",
@@ -16,7 +16,7 @@
 	"files": ["dist"],
 	"scripts": {
 		"build": "tsup src/index.ts --format cjs,esm --dts",
-		"release": "bun run build && changeset publish",
+		"release": "bun run build && npm publish",
 		"lint": "tsc"
 	},
 	"keywords": [
@@ -30,12 +30,13 @@
 	],
 	"author": "Kiran Kunigiri",
 	"license": "MIT",
-	"dependencies": {
-		"@mantine/form": "^7.13.5",
-		"@mantine/hooks": "^7.13.5",
-		"mantine-form-zod-resolver": "^1.1.0",
-		"zod": "^3.23.8"
-	},
+	"peerDependencies": {
+		"@mantine/form": "^7.0.0",
+		"@mantine/hooks": "^7.0.0",
+		"mantine-form-zod-resolver": "^1.0.0",
+		"react": "^18.0.0",
+		"zod": "^3.0.0"	
+	  },
 	"devDependencies": {
 		"@types/react": "^18.3.12",
 		"tsup": "^8.3.5",
