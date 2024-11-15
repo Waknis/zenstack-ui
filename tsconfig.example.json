@@ -33,6 +33,9 @@
 			],
 			"~zenstack-ui/*": [
 				"./package/src/*"
+			],
+			"~zenstack/*": [
+				"./zenstack/*"
 			]
 		}
 	},

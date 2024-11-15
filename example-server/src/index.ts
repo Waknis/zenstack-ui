@@ -6,13 +6,13 @@ import { trpcServer } from '@hono/trpc-server';
 import { neonConfig, Pool } from '@neondatabase/serverless'; // Neon
 import { PrismaNeon } from '@prisma/adapter-neon'; // Neon
 import { PrismaClient } from '@prisma/client';
-import { enhance } from '@zenstackhq/runtime/edge';
 import { createHonoHandler } from '@zenstackhq/server/hono';
 import { Hono } from 'hono';
 import { cors as honoCors } from 'hono/cors';
 import ws from 'ws';
 
 import { router } from '~server/api';
+import { enhance } from '~zenstack/enhance-edge';
 
 interface Bindings {
 	ENVIRONMENT: 'development' | 'production'

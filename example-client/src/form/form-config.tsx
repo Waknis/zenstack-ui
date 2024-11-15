@@ -2,9 +2,9 @@ import { Checkbox, MultiSelect, NumberInput, TextInput } from '@mantine/core';
 import { Button } from '@mantine/core';
 
 import { SearchableSelect } from '~client/form/lib/searchable-select';
-import * as hooks from '~client/zenstack';
-import metadata from '~client/zenstack/__model_meta';
-import * as schemas from '~client/zod/zod/models';
+import * as hooks from '~zenstack/hooks';
+import metadata from '~zenstack/hooks/__model_meta';
+import * as schemas from '~zenstack/zod/models';
 import { FieldType, type Metadata } from '~zenstack-ui/metadata';
 import type { MapFieldTypeToElement, MapSubmitTypeToButton, SubmitButtonProps, ZenstackUIConfigType } from '~zenstack-ui/utils/provider';
 

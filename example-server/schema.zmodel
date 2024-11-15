@@ -5,7 +5,7 @@
 plugin hooks {
 	provider = '@zenstackhq/tanstack-query'
 	target = 'react'
-	output = '../example-client/src/zenstack'
+	output = '../zenstack/hooks'
 }
 
 plugin zod {

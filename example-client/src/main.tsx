@@ -20,8 +20,8 @@ import { toast } from 'sonner';
 import { zenstackUIConfig } from '~client/form/form-config';
 import { theme } from '~client/routes/-mantine-theme';
 import { routeTree } from '~client/routeTree.gen';
-import { Provider as ZenStackHooksProvider } from '~client/zenstack';
 import type { AppRouter } from '~server/api';
+import { Provider as ZenStackHooksProvider } from '~zenstack/hooks';
 import { ZenstackUIProvider } from '~zenstack-ui/utils/provider';
 
 // --------------------------------------------------------------------------------

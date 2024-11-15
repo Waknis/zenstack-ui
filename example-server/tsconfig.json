@@ -11,6 +11,6 @@
 		"lib": ["ES2022"],
 		"types": ["bun-types"]
 	},
-	"include": ["src", "lambda", "lib"],
+	"include": ["src", "../zenstack"],
 	"references": [{ "path": "../example-client/tsconfig.json" }]
 }
