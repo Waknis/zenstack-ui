@@ -12,6 +12,8 @@ Currently, you can use it to add form components that automatically generate bas
 
 ![Zenstack UI Example](https://i.imgur.com/XwkhmDe.png)
 
+This demo also serves as a great starter template for working with the following stack: react + zenstack + cloudflare workers. [Read docs for setting up the demo project yourself here](https://kirankunigiri.notion.site/Demo-Setup-13ce451fa71180378d97db65566cf357).
+
 Here's an example from the demo. After running zenstack generation, you can pass the model name (ex: "Item") to any ZenstackForm component to create a fully functional form.
 
 ```prisma
