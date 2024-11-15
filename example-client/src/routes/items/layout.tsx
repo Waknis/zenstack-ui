@@ -1,10 +1,8 @@
-import { Skeleton } from '@mantine/core';
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
 import { ItemSchema } from '@zenstackhq/runtime/zod/models';
 
 import { ListHeader } from '~client/form/lib/list-header';
 import ListSkeleton from '~client/form/lib/skeleton';
-import * as hooks from '~client/zenstack';
 import ZenstackList from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/items')({

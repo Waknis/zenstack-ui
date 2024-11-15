@@ -6,17 +6,21 @@ import { trpcServer } from '@hono/trpc-server';
 import { neonConfig, Pool } from '@neondatabase/serverless'; // Neon
 import { PrismaNeon } from '@prisma/adapter-neon'; // Neon
 import { PrismaClient } from '@prisma/client';
-import { enhance } from '@zenstackhq/runtime';
+import { enhance } from '@zenstackhq/runtime/edge';
 import { createHonoHandler } from '@zenstackhq/server/hono';
 import { Hono } from 'hono';
 import { cors as honoCors } from 'hono/cors';
-import { logger } from 'hono/logger';
 import ws from 'ws';
 
 import { router } from '~server/api';
 
-const app = new Hono();
-app.use(logger());
+interface Bindings {
+	ENVIRONMENT: 'development' | 'production'
+	DATABASE_URL: string // your postgres database URL
+	WEBSITE_URL: string // your client website URL (ex: hosted on cloudflare pages)
+}
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.use('*', async (c, next) => {
 	return honoCors({

@@ -46,6 +46,14 @@ export const openTanStackReactQueryDevtools = () => {
 	if (btn) (btn as HTMLButtonElement).click();
 	else console.error('TanStack React Query Devtools button not found');
 };
+// Normally, you don't want devtools to show in prod, but this is useful for the demo.
+const ReactQueryDevtoolsProduction = React.lazy(() =>
+	import('@tanstack/react-query-devtools/build/modern/production.js').then(
+		d => ({
+			default: d.ReactQueryDevtools,
+		}),
+	),
+);
 
 // --------------------------------------------------------------------------------
 // Server URL Setup
@@ -105,6 +113,8 @@ export const queryClient = new QueryClient({
 	}),
 });
 
+console.log(import.meta.env.MODE);
+
 // --------------------------------------------------------------------------------
 // Render
 const rootElement = document.getElementById('root')!;
@@ -120,6 +130,11 @@ if (!rootElement.innerHTML) {
 								<ModalsProvider>
 									<RouterProvider router={router} />
 									<ReactQueryDevtools initialIsOpen={false} />
+									{import.meta.env.PROD && (
+										<React.Suspense fallback={null}>
+											<ReactQueryDevtoolsProduction initialIsOpen={false} />
+										</React.Suspense>
+									)}
 									<TanStackRouterDevtools
 										router={router}
 										initialIsOpen={false}

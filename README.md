@@ -10,6 +10,8 @@ Currently, you can use it to add form components that automatically generate bas
 
 [Test the demo website](https://zenstack-ui-demo.kirankunigiri.com)
 
+![Zenstack UI Example](https://i.imgur.com/XwkhmDe.png)
+
 Here's an example from the demo. After running zenstack generation, you can pass the model name (ex: "Item") to any ZenstackForm component to create a fully functional form.
 
 ```prisma
