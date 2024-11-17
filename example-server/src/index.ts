@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 // import { Pool } from '@prisma/pg-worker'; // Normal postgres, like Supabase
 // import { PrismaPg } from '@prisma/adapter-pg-worker'; // Normal postgres, like Supabase
 import { trpcServer } from '@hono/trpc-server';
