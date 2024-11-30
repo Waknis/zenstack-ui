@@ -1,5 +1,12 @@
+import type { PrismaClient } from '@prisma/client';
 import { initTRPC } from '@trpc/server';
-export const t = initTRPC.create();
+
+import { enhance } from '~zenstack/enhance-edge';
+
+export interface TrpcContext {
+	prisma: ReturnType<typeof enhance<PrismaClient>>
+}
+export const t = initTRPC.context<TrpcContext>().create();
 
 /** * Middleware to enable error logging for trpc */
 export const loggedProcedure = t.procedure.use(async (opts) => {

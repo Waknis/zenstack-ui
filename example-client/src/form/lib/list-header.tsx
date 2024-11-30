@@ -2,9 +2,14 @@ import { ActionIcon, Modal } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { LuPlus } from 'react-icons/lu';
 
-import { ZenstackCreateForm } from '~zenstack-ui/form/form';
+import { ZenstackCreateForm, type ZenstackFormOverrideProps } from '~zenstack-ui/form/form';
 
-export function ListHeader({ title, model }: { title: string, model: string }) {
+interface ListHeaderProps extends ZenstackFormOverrideProps {
+	title: string
+	model: string
+}
+
+export function ListHeader({ title, model, ...overrideProps }: ListHeaderProps) {
 	useHotkeys([
 		['meta+m', () => openCreateModal()],
 	]);
@@ -18,7 +23,7 @@ export function ListHeader({ title, model }: { title: string, model: string }) {
 		<>
 			{/* Create Modal */}
 			<Modal opened={createModalOpened} onClose={closeCreateModal} title={`Create ${model}`}>
-				<ZenstackCreateForm model={model} onSubmit={closeCreateModal} />
+				<ZenstackCreateForm model={model} onSubmit={closeCreateModal} {...overrideProps} />
 			</Modal>
 
 			{/* List Header */}

@@ -35,8 +35,11 @@ export interface Field {
 	relationField?: string
 	attributes?: Attribute[]
 
-	// custom fields
+	// custom fields for use by ZenstackForm
 	hidden?: boolean
+	displayFieldForReferencePicker?: string
+	dependsOn?: string[]
+	filter?: (modelFields: any, referenceFields: any) => boolean
 }
 
 export interface UniqueConstraint {
@@ -71,4 +74,5 @@ export type UseQueryHook<T> = (options?: any) => {
 
 export type UseFindUniqueHook<T> = (options?: any) => {
 	data: T
+	isLoading: boolean
 };

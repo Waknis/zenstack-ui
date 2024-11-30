@@ -113,8 +113,6 @@ export const queryClient = new QueryClient({
 	}),
 });
 
-console.log(import.meta.env.MODE);
-
 // --------------------------------------------------------------------------------
 // Render
 const rootElement = document.getElementById('root')!;

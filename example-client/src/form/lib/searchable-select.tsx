@@ -34,6 +34,8 @@ interface SearchableSelectProps {
 	label?: string
 	description?: string
 	className?: string
+	disabled?: boolean
+	required?: boolean
 }
 
 const selectDropdownTransition = {
@@ -92,7 +94,7 @@ export function SearchableSelect(props: SearchableSelectProps) {
 		<SearchableSelectOption key={item.value} item={item} selectedValue={value} combobox={combobox} index={index} />
 	));
 
-	const inputPlaceholder = props.inputPlaceholder || 'Pick value';
+	const inputPlaceholder = props.inputPlaceholder || 'Select...';
 
 	return (
 		<Combobox
@@ -121,14 +123,16 @@ export function SearchableSelect(props: SearchableSelectProps) {
 		>
 			<Combobox.Target>
 				<InputBase
+					required={props.required}
 					label={props.label}
 					description={props.description}
 					className={`mantine-Select-wrapper ${props.className || ''}`}
 					component="button"
 					type="button"
 					pointer
+					disabled={props.disabled}
 					rightSection={<Combobox.Chevron />}
-					onClick={() => combobox.toggleDropdown()}
+					onClick={() => !props.disabled && combobox.toggleDropdown()}
 					onFocus={props.onFocus}
 					onBlur={props.onBlur}
 					rightSectionPointerEvents="none"

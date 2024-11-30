@@ -11,6 +11,7 @@ export type MapFieldTypeToElement = Partial<Record<FieldType, React.ElementType>
 
 export interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	model: string
+	loading?: boolean
 }
 export type SubmitType = 'create' | 'update';
 export type MapSubmitTypeToButton = Record<SubmitType, React.ElementType<SubmitButtonProps>>;
@@ -21,6 +22,9 @@ export interface ZenstackUIConfigType {
 	elementMap: MapFieldTypeToElement
 	submitButtons: MapSubmitTypeToButton
 	hooks: Record<string, UseQueryHook<any> | any>
+
+	/** Transform enum labels for display. For example, convert 'first_name' to 'First Name' */
+	enumLabelTransformer?: (label: string) => string
 }
 
 const ZenstackUIContext = createContext<ZenstackUIConfigType | null>(null);

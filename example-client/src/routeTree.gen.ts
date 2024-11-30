@@ -11,14 +11,22 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as RoomsLayoutImport } from './routes/rooms/layout'
 import { Route as PeopleLayoutImport } from './routes/people/layout'
 import { Route as ItemsLayoutImport } from './routes/items/layout'
 import { Route as IndexImport } from './routes/index'
 import { Route as AboutIndexImport } from './routes/about/index'
+import { Route as RoomsIdImport } from './routes/rooms/$id'
 import { Route as PeopleIdImport } from './routes/people/$id'
 import { Route as ItemsIdImport } from './routes/items/$id'
 
 // Create/Update Routes
+
+const RoomsLayoutRoute = RoomsLayoutImport.update({
+  id: '/rooms',
+  path: '/rooms',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const PeopleLayoutRoute = PeopleLayoutImport.update({
   id: '/people',
@@ -42,6 +50,12 @@ const AboutIndexRoute = AboutIndexImport.update({
   id: '/about/',
   path: '/about/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const RoomsIdRoute = RoomsIdImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => RoomsLayoutRoute,
 } as any)
 
 const PeopleIdRoute = PeopleIdImport.update({
@@ -81,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PeopleLayoutImport
       parentRoute: typeof rootRoute
     }
+    '/rooms': {
+      id: '/rooms'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof RoomsLayoutImport
+      parentRoute: typeof rootRoute
+    }
     '/items/$id': {
       id: '/items/$id'
       path: '/$id'
@@ -94,6 +115,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/people/$id'
       preLoaderRoute: typeof PeopleIdImport
       parentRoute: typeof PeopleLayoutImport
+    }
+    '/rooms/$id': {
+      id: '/rooms/$id'
+      path: '/$id'
+      fullPath: '/rooms/$id'
+      preLoaderRoute: typeof RoomsIdImport
+      parentRoute: typeof RoomsLayoutImport
     }
     '/about/': {
       id: '/about/'
@@ -131,12 +159,26 @@ const PeopleLayoutRouteWithChildren = PeopleLayoutRoute._addFileChildren(
   PeopleLayoutRouteChildren,
 )
 
+interface RoomsLayoutRouteChildren {
+  RoomsIdRoute: typeof RoomsIdRoute
+}
+
+const RoomsLayoutRouteChildren: RoomsLayoutRouteChildren = {
+  RoomsIdRoute: RoomsIdRoute,
+}
+
+const RoomsLayoutRouteWithChildren = RoomsLayoutRoute._addFileChildren(
+  RoomsLayoutRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/items': typeof ItemsLayoutRouteWithChildren
   '/people': typeof PeopleLayoutRouteWithChildren
+  '/rooms': typeof RoomsLayoutRouteWithChildren
   '/items/$id': typeof ItemsIdRoute
   '/people/$id': typeof PeopleIdRoute
+  '/rooms/$id': typeof RoomsIdRoute
   '/about': typeof AboutIndexRoute
 }
 
@@ -144,8 +186,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/items': typeof ItemsLayoutRouteWithChildren
   '/people': typeof PeopleLayoutRouteWithChildren
+  '/rooms': typeof RoomsLayoutRouteWithChildren
   '/items/$id': typeof ItemsIdRoute
   '/people/$id': typeof PeopleIdRoute
+  '/rooms/$id': typeof RoomsIdRoute
   '/about': typeof AboutIndexRoute
 }
 
@@ -154,8 +198,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/items': typeof ItemsLayoutRouteWithChildren
   '/people': typeof PeopleLayoutRouteWithChildren
+  '/rooms': typeof RoomsLayoutRouteWithChildren
   '/items/$id': typeof ItemsIdRoute
   '/people/$id': typeof PeopleIdRoute
+  '/rooms/$id': typeof RoomsIdRoute
   '/about/': typeof AboutIndexRoute
 }
 
@@ -165,18 +211,30 @@ export interface FileRouteTypes {
     | '/'
     | '/items'
     | '/people'
+    | '/rooms'
     | '/items/$id'
     | '/people/$id'
+    | '/rooms/$id'
     | '/about'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/items' | '/people' | '/items/$id' | '/people/$id' | '/about'
+  to:
+    | '/'
+    | '/items'
+    | '/people'
+    | '/rooms'
+    | '/items/$id'
+    | '/people/$id'
+    | '/rooms/$id'
+    | '/about'
   id:
     | '__root__'
     | '/'
     | '/items'
     | '/people'
+    | '/rooms'
     | '/items/$id'
     | '/people/$id'
+    | '/rooms/$id'
     | '/about/'
   fileRoutesById: FileRoutesById
 }
@@ -185,6 +243,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ItemsLayoutRoute: typeof ItemsLayoutRouteWithChildren
   PeopleLayoutRoute: typeof PeopleLayoutRouteWithChildren
+  RoomsLayoutRoute: typeof RoomsLayoutRouteWithChildren
   AboutIndexRoute: typeof AboutIndexRoute
 }
 
@@ -192,6 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ItemsLayoutRoute: ItemsLayoutRouteWithChildren,
   PeopleLayoutRoute: PeopleLayoutRouteWithChildren,
+  RoomsLayoutRoute: RoomsLayoutRouteWithChildren,
   AboutIndexRoute: AboutIndexRoute,
 }
 
@@ -208,6 +268,7 @@ export const routeTree = rootRoute
         "/",
         "/items",
         "/people",
+        "/rooms",
         "/about/"
       ]
     },
@@ -226,6 +287,12 @@ export const routeTree = rootRoute
         "/people/$id"
       ]
     },
+    "/rooms": {
+      "filePath": "rooms/layout.tsx",
+      "children": [
+        "/rooms/$id"
+      ]
+    },
     "/items/$id": {
       "filePath": "items/$id.tsx",
       "parent": "/items"
@@ -233,6 +300,10 @@ export const routeTree = rootRoute
     "/people/$id": {
       "filePath": "people/$id.tsx",
       "parent": "/people"
+    },
+    "/rooms/$id": {
+      "filePath": "rooms/$id.tsx",
+      "parent": "/rooms"
     },
     "/about/": {
       "filePath": "about/index.tsx"

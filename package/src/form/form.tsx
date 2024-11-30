@@ -4,39 +4,57 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from '@mantine/form';
 import { getHotkeyHandler } from '@mantine/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { useEffect, useMemo } from 'react';
-import { z } from 'zod';
+import { useEffect, useMemo, useState } from 'react';
+import { z, ZodSchema } from 'zod';
 
-import { Field, FieldType, UseFindUniqueHook, UseMutationHook, UseQueryHook } from '../metadata';
+import { Field, FieldType, Metadata, UseFindUniqueHook, UseMutationHook, UseQueryHook } from '../metadata';
 import { useZenstackUIProvider } from '../utils/provider';
 import { getIdField, getModelFields } from '../utils/utils';
 
-interface ZenstackSharedFormProps {
+export interface ZenstackFormOverrideProps {
+	onSubmit?: (values: any) => void // Do custom action after submission completes
+	overrideSubmit?: (values: any) => Promise<void> // Override default submission behavior with custom server hook
+	schemaOverride?: ZodSchema
+	metadataOverride?: Metadata
+}
+
+interface ZenstackSharedFormProps extends ZenstackFormOverrideProps {
 	model: string
 }
 
 interface ZenstackUpdateFormProps extends ZenstackSharedFormProps {
 	id: number | string
-	onSubmit?: (values: any) => void
-	onLoadStateChanged?: (loading: boolean) => void
 	onIdChanged?: (id: number | string) => void
 }
 
-interface ZenstackCreateFormProps extends ZenstackSharedFormProps {
-	onSubmit?: (values: any) => void
-}
+type ZenstackCreateFormProps = ZenstackSharedFormProps;
 
 interface ZenstackBaseFormProps extends ZenstackSharedFormProps {
 	form: ReturnType<typeof useForm>
 	schema: z.ZodObject<any>
 	type: 'create' | 'update'
+
+	// Loading states
+	isLoadingInitialData?: boolean
+	isLoadingUpdate?: boolean
+	isLoadingCreate?: boolean
 }
 
-const resetForm = (form: ReturnType<typeof useForm>, data?: any) => {
-	form.setInitialValues(data || {});
-	form.setValues(data || {});
-	form.resetDirty();
+/** Generates the default state for the form */
+const createDefaultValues = (fields: Record<string, Field>) => {
+	const defaultValueMap: Record<string, any> = {};
+	Object.values(fields).forEach((field) => {
+		if (field.isDataModel) return;
+		const defaultAttr = field.attributes?.find(attr => attr.name === '@default');
+		if (defaultAttr?.args?.[0]?.value) {
+			defaultValueMap[field.name] = defaultAttr?.args?.[0]?.value;
+		} else {
+			defaultValueMap[field.name] = '';
+		}
+	});
+	return defaultValueMap;
 };
 
 /**
@@ -93,92 +111,91 @@ const focusOnPrevActiveElement = () => {
 // Update Form
 // --------------------------------------------------------------------------------
 export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
-	const { schemas, metadata, hooks } = useZenstackUIProvider();
+	const { hooks, schemas, metadata: originalMetadata } = useZenstackUIProvider();
+	const metadata = props.metadataOverride || originalMetadata;
+	const queryClient = useQueryClient();
 
 	// Extract information
-	const mainSchema = schemas[`${props.model}Schema`]; // we don't use update schema because that will mark everything as optional
+	const mainSchema = props.schemaOverride || schemas[`${props.model}Schema`]; // we don't use update schema because that will mark everything as optional
 	const fields = getModelFields(metadata, props.model);
 	const idField = getIdField(fields);
 
 	// Fetch initial values
 	const useFindUniqueHook = hooks[`useFindUnique${props.model}`] as UseFindUniqueHook<any>;
-	const { data } = useFindUniqueHook({ where: { [idField.name]: props.id } });
+	const { data, isLoading: isLoadingInitialData } = useFindUniqueHook({ where: { [idField.name]: props.id } });
 
 	// Setup update hook
+	const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
 	const useUpdateHook = hooks[`useUpdate${props.model}`] as UseMutationHook<any>;
 	const update = useUpdateHook({ optimisticUpdate: true });
 
-	// Fetch reference field values
-	// This is already being done in the base form, but doing it here again to trigger a re-render when the data is loaded
-	// const referenceFields = Object.values(fields).filter(field => field.isDataModel);
-	// const referenceQueries = referenceFields.map((field) => {
-	// 	const useQueryDataHook = hooks[`useFindMany${field.type}`] as UseQueryHook<any>;
-	// 	return useQueryDataHook();
-	// });
-	// const allReferencesLoaded = referenceQueries.every(query => query?.data);
-
-	// This fixes the race condition bug by setting the form data again after references are loaded.
-	// Ideally, each field should be updated on it's own
-	// useEffect(() => {
-	// 	console.log('allReferencesLoaded:', allReferencesLoaded);
-	// 	if (allReferencesLoaded) {
-	// 		form.setValues(data || {});
-	// 	}
-	// }, [allReferencesLoaded]);
-
 	// Setup form
 	const form = useForm({
-		mode: 'uncontrolled',
+		mode: 'controlled', // Controlled mode is required for adaptive filters
 		validate: zodResolver(mainSchema),
-		initialValues: data || {},
+		initialValues: createDefaultValues(fields),
 		// validateInputOnBlur: true,
 	});
 
-	// When the id changes, set all values to null. Setting to empty object doesn't work
+	// When the id changes, reset back to an empty form first before the new query starts
 	useEffect(() => {
-		console.log('setting all values to null');
-
-		const emptyValues = Object.keys(fields).reduce((acc, key) => {
-			// Skip isDataModel fields
-			if (fields[key].isDataModel) return acc;
-			acc[key] = null;
-			return acc;
-		}, {} as Record<string, null>);
-		form.setValues(emptyValues);
+		const defaultValues = createDefaultValues(fields);
+		form.setInitialValues(defaultValues);
+		form.setValues(defaultValues);
+		form.resetDirty();
 	}, [props.id]);
 
 	// Set initial values after data is fetched
 	useEffect(() => {
 		if (data) {
-			props.onLoadStateChanged?.(false);
-			resetForm(form, data);
-		} else {
-			props.onLoadStateChanged?.(true);
+			// Get default values, and copy over the new fetched data
+			const defaultValues = createDefaultValues(fields);
+			for (const key in data) {
+				if (data[key]) defaultValues[key] = data[key];
+			}
+
+			form.setInitialValues(defaultValues);
+			form.setValues(defaultValues);
+			form.resetDirty();
 		}
 	}, [data]);
 
 	// Handle update submit
 	const handleUpdateSubmit = async (values: any) => {
-		// Only send dirty fields for the update query
-		const dirtyFields = form.getDirty();
-		const dirtyValues = Object.fromEntries(
-			Object.entries(values as Record<string, unknown>)
-				.filter(([key]) => dirtyFields[key]),
-		);
-		// Update data
-		const cleanedData = cleanAndConnectData(dirtyValues, fields);
+		setIsLoadingUpdate(true);
 		try {
-			// perform update query
-			const result = await update.mutateAsync({
-				where: { [idField.name]: props.id },
-				data: cleanedData,
-			});
+			if (props.overrideSubmit) {
+				await props.overrideSubmit(values);
+				props.onSubmit?.(values);
+				// Invalidate all queries for this model
+				queryClient.invalidateQueries({
+					predicate: (query) => {
+						const queryKey = query.queryKey;
+						return queryKey.includes(props.model);
+					},
+				});
+			} else {
+				// Only send dirty fields for the update query
+				const dirtyFields = form.getDirty();
+				const dirtyValues = Object.fromEntries(
+					Object.entries(values as Record<string, unknown>)
+						.filter(([key]) => dirtyFields[key]),
+				);
+				// Update data
+				const cleanedData = cleanAndConnectData(dirtyValues, fields);
+				const result = await update.mutateAsync({
+					where: { [idField.name]: props.id },
+					data: cleanedData,
+				});
 
-			// Check if ID field was updated and trigger callbacks
-			if (dirtyFields[idField.name]) props.onIdChanged?.(result[idField.name]);
-			props.onSubmit?.(cleanedData);
+				// Check if ID field was updated and trigger callbacks
+				if (dirtyFields[idField.name]) props.onIdChanged?.(result[idField.name]);
+				props.onSubmit?.(cleanedData);
+			}
 		} catch (error) {
 			console.error('Update failed:', error);
+		} finally {
+			setIsLoadingUpdate(false);
 		}
 	};
 
@@ -197,7 +214,7 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 				['mod+backspace', handleRevertShortcut],
 			])}
 		>
-			<ZenstackBaseForm model={props.model} form={form} schema={mainSchema} type="update" />
+			<ZenstackBaseForm model={props.model} form={form} schema={mainSchema} type="update" isLoadingInitialData={isLoadingInitialData} isLoadingUpdate={isLoadingUpdate} metadataOverride={props.metadataOverride} />
 		</form>
 	);
 };
@@ -206,10 +223,12 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 // Create Form
 // --------------------------------------------------------------------------------
 export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
-	const { hooks, schemas, metadata } = useZenstackUIProvider();
+	const { hooks, schemas, metadata: originalMetadata } = useZenstackUIProvider();
+	const metadata = props.metadataOverride || originalMetadata;
+	const queryClient = useQueryClient();
 
 	// Extract information
-	const createSchema = schemas[`${props.model}CreateSchema`];
+	const createSchema: ZodSchema = props.schemaOverride || schemas[`${props.model}CreateSchema`];
 	const fields = getModelFields(metadata, props.model);
 
 	// Get default values from metadata
@@ -222,29 +241,49 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 	});
 
 	// Setup create hook
+	const [isLoadingCreate, setIsLoadingCreate] = useState(false);
 	const useCreateHook = hooks[`useCreate${props.model}`] as UseMutationHook<any>;
 	const create = useCreateHook({ optimisticUpdate: true });
 
 	// Setup form
 	const form = useForm({
-		mode: 'uncontrolled',
+		mode: 'controlled', // Controlled mode is required for adaptive filters
 		validate: zodResolver(createSchema),
 		initialValues: defaultValueMap,
 		// validateInputOnBlur: true,
 	});
 
 	// Handle create submit
-	const handleCreateSubmit = (values: any) => {
-		const cleanedData = cleanAndConnectData(values, fields);
-		create.mutateAsync({
-			data: cleanedData,
-		});
-		props.onSubmit?.(cleanedData);
+	const handleCreateSubmit = async (values: any) => {
+		setIsLoadingCreate(true);
+		try {
+			if (props.overrideSubmit) {
+				await props.overrideSubmit(values);
+				props.onSubmit?.(values);
+				// Invalidate all queries for this model
+				queryClient.invalidateQueries({
+					predicate: (query) => {
+						const queryKey = query.queryKey;
+						return queryKey.includes(props.model);
+					},
+				});
+			} else {
+				const cleanedData = cleanAndConnectData(values, fields);
+				await create.mutateAsync({
+					data: cleanedData,
+				});
+				props.onSubmit?.(cleanedData);
+			}
+		} catch (error) {
+			console.error('Create failed:', error);
+		} finally {
+			setIsLoadingCreate(false);
+		}
 	};
 
 	return (
 		<form onSubmit={form.onSubmit(handleCreateSubmit)}>
-			<ZenstackBaseForm model={props.model} form={form} schema={createSchema} type="create" />
+			<ZenstackBaseForm model={props.model} form={form} schema={createSchema} type="create" isLoadingCreate={isLoadingCreate} metadataOverride={props.metadataOverride} />
 		</form>
 	);
 };
@@ -253,16 +292,17 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 // Base Form (shared between create/update forms)
 // --------------------------------------------------------------------------------
 const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
-	const { metadata, submitButtons } = useZenstackUIProvider();
+	const { metadata: originalMetadata, submitButtons } = useZenstackUIProvider();
+	const metadata = props.metadataOverride || originalMetadata;
 
 	// Extract information
 	const fields = getModelFields(metadata, props.model);
 
 	return (
 		<>
-			{Object.values(fields).map((field) => {
+			{Object.values(fields).map((field, index) => {
 				return (
-					<ZenstackFormInput key={field.name} field={field} {...props}></ZenstackFormInput>
+					<ZenstackFormInputInternal key={field.name} field={field} index={index} {...props} metadataOverride={props.metadataOverride}></ZenstackFormInputInternal>
 				);
 			})}
 
@@ -282,12 +322,19 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 				</div>
 			)}
 
-			{props.type === 'create' && <submitButtons.create model={props.model} type="submit" />}
+			{props.type === 'create' && (
+				<submitButtons.create
+					model={props.model}
+					type="submit"
+					loading={props.isLoadingCreate}
+				/>
+			)}
 			{props.type === 'update' && (
 				<submitButtons.update
 					model={props.model}
 					type="submit"
 					disabled={!Object.values(props.form.getDirty()).some(isDirty => isDirty)}
+					loading={props.isLoadingUpdate}
 				/>
 			)}
 		</>
@@ -296,9 +343,12 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 
 interface ZenstackFormInputProps extends ZenstackBaseFormProps {
 	field: Field
+	index: number
 }
-const ZenstackFormInput = (props: ZenstackFormInputProps) => {
-	const { metadata, elementMap, hooks } = useZenstackUIProvider();
+const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
+	const { metadata: originalMetadata, elementMap, hooks, enumLabelTransformer } = useZenstackUIProvider();
+	const metadata = props.metadataOverride || originalMetadata;
+
 	const fields = getModelFields(metadata, props.model);
 	const zodShape = props.schema.shape;
 	const field = props.field;
@@ -312,16 +362,6 @@ const ZenstackFormInput = (props: ZenstackFormInputProps) => {
 
 	// Call the hook unconditionally (if it exists)
 	const referenceFieldData = useQueryDataHook ? useQueryDataHook() : { data: null };
-
-	useEffect(() => {
-		if (!field.isForeignKey) return;
-		const value = props.form.getValues()[field.name];
-
-		if (referenceFieldData?.data && value !== null) {
-			props.form.setInitialValues({ ...props.form.getValues(), [field.name]: `${value}` });
-			props.form.setFieldValue(field.name, `${value}`);
-		}
-	}, [referenceFieldData?.data]);
 
 	// Skip hidden, foreign keys, array fields
 	if (field.hidden) return null;
@@ -350,7 +390,7 @@ const ZenstackFormInput = (props: ZenstackFormInputProps) => {
 		fieldType = FieldType.Enum;
 		labelData = zodDef['values'].map((value: any) => {
 			return {
-				label: value,
+				label: enumLabelTransformer ? enumLabelTransformer(value) : value,
 				value: value,
 			};
 		});
@@ -366,9 +406,28 @@ const ZenstackFormInput = (props: ZenstackFormInputProps) => {
 		const relationIdField = getIdField(relationFields);
 
 		if (referenceFieldData?.data) {
-			labelData = referenceFieldData.data.map((item: any) => {
+			// Find the display field for the reference model
+			// If displayFieldForReferencePicker exists, use it instead of the default id field
+			const backlinkField = getModelFields(metadata, dataModelField.type);
+			const backlinkIdField = getIdField(backlinkField);
+			const displayField = backlinkIdField.displayFieldForReferencePicker || relationIdField.name;
+
+			// Filter the data if a filter function exists
+			let filteredData = referenceFieldData.data;
+			if (field.filter) {
+				const modelValues = props.form.getValues();
+				// Fix an issue where values are strings ('undefined') instead of undefined
+				Object.keys(modelValues).forEach(key => modelValues[key] === 'undefined' && (modelValues[key] = undefined));
+				// Filter the data
+				filteredData = referenceFieldData.data.filter((referenceItem: any) =>
+					field.filter!(modelValues, referenceItem),
+				);
+			}
+
+			// Generate label data
+			labelData = filteredData.map((item: any) => {
 				return {
-					label: item[relationIdField.name!],
+					label: `${item[displayField]}`,
 					value: item[relationIdField.name!],
 				};
 			});
@@ -381,23 +440,57 @@ const ZenstackFormInput = (props: ZenstackFormInputProps) => {
 	const Element = elementMap[fieldType];
 	const isDirty = props.type === 'update' && props.form.getDirty()[fieldName];
 
+	// Check if field should be disabled based on dependencies
+	let isDisabled = false;
+	if (field.dependsOn) {
+		const formValues = props.form.getValues();
+		isDisabled = field.dependsOn.some(dependencyField =>
+			formValues[dependencyField] === undefined
+			|| formValues[dependencyField] === null,
+		);
+	}
+
 	if (!Element) {
 		console.error(`No element mapping found for field type: ${field.type}`);
 		return <div style={{ color: 'red' }} key={fieldName}>Error: No element mapping found for field type: {fieldType}</div>;
 	}
 
 	let placeholder;
-	if (props.type === 'update') placeholder = 'Loading...';
+	if (props.isLoadingInitialData) placeholder = 'Loading...';
+
+	// Create wrapped onChange handler
+	// This handler is used to reset dependent fields when the main field changes (using dependsOn from metadata)
+	const handleChange = (event: any) => {
+		const fieldName = props.field.name;
+
+		// Call original onChange
+		props.form.getInputProps(fieldName).onChange(event);
+
+		// Find fields that depend on this field
+		Object.values(fields).forEach((field) => {
+			if (!field.dependsOn?.includes(fieldName)) return;
+
+			// Get default value for the dependent field if it exists
+			const defaultAttr = field.attributes?.find(attr => attr.name === '@default');
+			const defaultValue = defaultAttr?.args?.[0]?.value ?? null;
+
+			// Reset the dependent field to default or null
+			props.form.setFieldValue(field.name, defaultValue);
+		});
+	};
 
 	return (
 		<Element
 			placeholder={placeholder}
 			required={required}
 			key={props.form.key(fieldName)}
+			{...props.form.getInputProps(fieldName)}
+			onChange={handleChange} // Override onChange with our wrapped version
 			label={label}
 			data={labelData}
 			className={isDirty ? 'dirty' : ''}
-			{...props.form.getInputProps(fieldName)}
+			disabled={isDisabled}
+			data-autofocus={props.index === 0}
 		/>
 	);
 };

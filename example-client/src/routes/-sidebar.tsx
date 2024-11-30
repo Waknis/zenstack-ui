@@ -23,6 +23,7 @@ export const organizedRoutes: RouteGroup = {
 	Tables: [
 		{ fullPath: '/items', icon: MdOutlineCategory },
 		{ fullPath: '/people', icon: LuUsers },
+		{ fullPath: '/rooms', icon: LuUsers },
 	],
 	Info: [
 		{ fullPath: '/about', icon: LuInfo },

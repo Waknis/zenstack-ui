@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { DetailHeader } from '~client/form/lib/detail-header';
 import MantineZenstackUpdateForm from '~client/form/lib/mantine-update-form';
+import { useFindManyItem } from '~zenstack/hooks';
 
 export const Route = createFileRoute('/items/$id')({
 	component: ItemsDetail,

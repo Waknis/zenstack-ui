@@ -28,16 +28,29 @@ datasource db {
 // ================================================================================
 
 model Person {
-	name  String @id
-	items Item[]
+	name   String @id
+	items  Item[]
+	room   Room   @relation(fields: [roomId], references: [id])
+	roomId Int
 }
 
 model Item {
 	id        Int           @id @default(autoincrement())
 	name      String
 	category  ITEM_CATEGORY
+	room      Room          @relation(fields: [roomId], references: [id])
+	roomId    Int
 	owner     Person        @relation(fields: [ownerName], references: [name])
 	ownerName String
+}
+
+model Room {
+	id          Int      @id @default(autoincrement())
+	name        String
+	items       Item[]
+	people      Person[]
+	description String?
+	aiSummary   String
 }
 
 enum ITEM_CATEGORY {

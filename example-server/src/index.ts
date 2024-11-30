@@ -10,6 +10,7 @@ import { cors as honoCors } from 'hono/cors';
 import ws from 'ws';
 
 import { router } from '~server/api';
+import type { TrpcContext } from '~server/trpc';
 import { enhance } from '~zenstack/enhance-edge';
 
 interface Bindings {
@@ -20,6 +21,7 @@ interface Bindings {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+// Cors middleware
 app.use('*', async (c, next) => {
 	return honoCors({
 		origin: c.env.ENVIRONMENT === 'development' ? '*' : c.env.WEBSITE_URL,
@@ -28,31 +30,40 @@ app.use('*', async (c, next) => {
 	})(c, next);
 });
 
+// Create prisma edge context for trpc and zenstack adapters
+const createPrismaContext = (ctx: { env: Bindings }) => {
+	// Normal postgres, like Supabase
+	// const connectionString = ctx.env.DATABASE_URL;
+	// const pool = new Pool({ connectionString });
+	// const adapter = new PrismaPg(pool);
+	// const prisma = new PrismaClient({ adapter });
+
+	// Neon adapter
+	neonConfig.webSocketConstructor = ws;
+	const connectionString = `${ctx.env.DATABASE_URL}`;
+	const pool = new Pool({ connectionString });
+	const adapter = new PrismaNeon(pool);
+	const prisma = new PrismaClient({ adapter });
+	return enhance(prisma, {}, { kinds: ['delegate'] });
+};
+
+// TRPC Adapter
 app.use(
 	'/trpc/*',
 	trpcServer({
 		router: router,
+		createContext: (_opts, ctx) => {
+			return { prisma: createPrismaContext(ctx) } satisfies TrpcContext;
+		},
 	}),
 );
 
+// Zenstack Adapter
 app.use(
 	'/api/model/*',
 	createHonoHandler({
 		getPrisma: (ctx) => {
-			// Normal postgres, like Supabase
-			// const connectionString = ctx.env.DATABASE_URL;
-			// const pool = new Pool({ connectionString });
-			// const adapter = new PrismaPg(pool);
-			// const prisma = new PrismaClient({ adapter });
-
-			// Neon adapter
-			neonConfig.webSocketConstructor = ws;
-			const connectionString = `${ctx.env.DATABASE_URL}`;
-			const pool = new Pool({ connectionString });
-			const adapter = new PrismaNeon(pool);
-			const prisma = new PrismaClient({ adapter });
-
-			return enhance(prisma, {}, { kinds: ['delegate'] });
+			return createPrismaContext(ctx);
 		},
 	}),
 );
