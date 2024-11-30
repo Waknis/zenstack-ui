@@ -1,4 +1,4 @@
-import { Checkbox, Combobox, ScrollArea } from '@mantine/core';
+import { Checkbox, Combobox, ScrollArea, Textarea } from '@mantine/core';
 import { Button, Modal, Select, TextInput, Tooltip } from '@mantine/core';
 import { createTheme } from '@mantine/core';
 
@@ -20,6 +20,15 @@ export const theme = createTheme({
 				radius: '6px',
 				size: 'xs',
 				autoContrast: true,
+			},
+		}),
+		Textarea: Textarea.extend({
+			defaultProps: {
+				styles: {
+					input: {
+						fontSize: '14px',
+					},
+				},
 			},
 		}),
 		Combobox: Combobox.extend({

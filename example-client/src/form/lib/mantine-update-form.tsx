@@ -3,11 +3,12 @@ import { useNavigate } from '@tanstack/react-router';
 import type { RouteFullPaths } from '~client/routes/-sidebar';
 import { ZenstackUpdateForm } from '~zenstack-ui/form/form';
 
-type FormProps = React.ComponentProps<typeof ZenstackUpdateForm> & {
+type MantineZenstackUpdateFormProps = React.ComponentProps<typeof ZenstackUpdateForm> & {
 	route: RouteFullPaths
+	children?: React.ReactNode
 };
 
-const MantineZenstackUpdateForm = (props: FormProps) => {
+const MantineZenstackUpdateForm = (props: MantineZenstackUpdateFormProps) => {
 	const navigate = useNavigate();
 
 	const handleIdChanged = (id: number | string) => {
@@ -15,9 +16,9 @@ const MantineZenstackUpdateForm = (props: FormProps) => {
 	};
 
 	return (
-		<div className="relative">
-			<ZenstackUpdateForm {...props} onIdChanged={handleIdChanged} />
-		</div>
+		<ZenstackUpdateForm {...props} onIdChanged={handleIdChanged} formRef={props.formRef}>
+			{props.children}
+		</ZenstackUpdateForm>
 	);
 };
 

@@ -6,26 +6,34 @@ import { useForm } from '@mantine/form';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { z, ZodSchema } from 'zod';
 
 import { Field, FieldType, Metadata, UseFindUniqueHook, UseMutationHook, UseQueryHook } from '../metadata';
 import { useZenstackUIProvider } from '../utils/provider';
 import { getIdField, getModelFields } from '../utils/utils';
 
+// Form ref type
+export interface ZenstackFormRef {
+	form: ReturnType<typeof useForm>
+}
+
 export interface ZenstackFormOverrideProps {
 	onSubmit?: (values: any) => void // Do custom action after submission completes
 	overrideSubmit?: (values: any) => Promise<void> // Override default submission behavior with custom server hook
 	schemaOverride?: ZodSchema
 	metadataOverride?: Metadata
+	formRef?: React.RefObject<ZenstackFormRef>
 }
 
 interface ZenstackSharedFormProps extends ZenstackFormOverrideProps {
 	model: string
+	children?: React.ReactNode
 }
 
 interface ZenstackUpdateFormProps extends ZenstackSharedFormProps {
 	id: number | string
+	/** Called by the form when the id field is updated. Useful for updating the URL */
 	onIdChanged?: (id: number | string) => void
 }
 
@@ -137,6 +145,11 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 		// validateInputOnBlur: true,
 	});
 
+	// Add useImperativeHandle to expose form object
+	useImperativeHandle(props.formRef, () => ({
+		form,
+	}));
+
 	// When the id changes, reset back to an empty form first before the new query starts
 	useEffect(() => {
 		const defaultValues = createDefaultValues(fields);
@@ -214,7 +227,9 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 				['mod+backspace', handleRevertShortcut],
 			])}
 		>
-			<ZenstackBaseForm model={props.model} form={form} schema={mainSchema} type="update" isLoadingInitialData={isLoadingInitialData} isLoadingUpdate={isLoadingUpdate} metadataOverride={props.metadataOverride} />
+			<ZenstackBaseForm model={props.model} form={form} schema={mainSchema} type="update" isLoadingInitialData={isLoadingInitialData} isLoadingUpdate={isLoadingUpdate} metadataOverride={props.metadataOverride}>
+				{props.children}
+			</ZenstackBaseForm>
 		</form>
 	);
 };
@@ -253,6 +268,11 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 		// validateInputOnBlur: true,
 	});
 
+	// Add useImperativeHandle to expose form object
+	useImperativeHandle(props.formRef, () => ({
+		form,
+	}));
+
 	// Handle create submit
 	const handleCreateSubmit = async (values: any) => {
 		setIsLoadingCreate(true);
@@ -283,7 +303,9 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 
 	return (
 		<form onSubmit={form.onSubmit(handleCreateSubmit)}>
-			<ZenstackBaseForm model={props.model} form={form} schema={createSchema} type="create" isLoadingCreate={isLoadingCreate} metadataOverride={props.metadataOverride} />
+			<ZenstackBaseForm model={props.model} form={form} schema={createSchema} type="create" isLoadingCreate={isLoadingCreate} metadataOverride={props.metadataOverride}>
+				{props.children}
+			</ZenstackBaseForm>
 		</form>
 	);
 };
@@ -305,6 +327,8 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 					<ZenstackFormInputInternal key={field.name} field={field} index={index} {...props} metadataOverride={props.metadataOverride}></ZenstackFormInputInternal>
 				);
 			})}
+
+			{props.children}
 
 			{/* Errors and Submit Buttons */}
 			{Object.keys(props.form.errors).length > 0 && (
@@ -372,7 +396,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	let fieldType = field.type as FieldType;
 	let fieldName = field.name;
 	let labelData = {};
-	let label = field.name;
+	let label = field.label || field.name;
 	let zodDef = zodShape[fieldName]['_def'];
 	let zodFieldType = zodDef['typeName'];
 
@@ -455,7 +479,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 		return <div style={{ color: 'red' }} key={fieldName}>Error: No element mapping found for field type: {fieldType}</div>;
 	}
 
-	let placeholder;
+	let placeholder = field.placeholder;
 	if (props.isLoadingInitialData) placeholder = 'Loading...';
 
 	// Create wrapped onChange handler

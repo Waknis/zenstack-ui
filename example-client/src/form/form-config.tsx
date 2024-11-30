@@ -54,6 +54,7 @@ type EnhancedMetadata<T> = T & {
 export const meta = metadata as EnhancedMetadata<typeof metadata>;
 meta.models.item.fields.id.hidden = true;
 meta.models.room.fields.id.hidden = true;
+meta.models.room.fields.aiSummary.label = 'AI Generated Summary';
 
 // All forms that reference the room model will use the room name instead of id in the Select component
 meta.models.room.fields.id.displayFieldForReferencePicker = meta.models.room.fields.name.name;

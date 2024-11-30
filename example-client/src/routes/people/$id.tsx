@@ -1,10 +1,7 @@
-import { LoadingOverlay } from '@mantine/core';
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
 
 import { DetailHeader } from '~client/form/lib/detail-header';
 import MantineZenstackUpdateForm from '~client/form/lib/mantine-update-form';
-import { ZenstackUpdateForm } from '~zenstack-ui/form/form';
 
 export const Route = createFileRoute('/people/$id')({
 	component: PeopleDetail,

@@ -36,7 +36,11 @@ export interface Field {
 	attributes?: Attribute[]
 
 	// custom fields for use by ZenstackForm
+	/** The label to display for the field */
+	label?: string
+	placeholder?: string
 	hidden?: boolean
+	/** The field of the reference model to display in the reference picker */
 	displayFieldForReferencePicker?: string
 	dependsOn?: string[]
 	filter?: (modelFields: any, referenceFields: any) => boolean
