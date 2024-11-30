@@ -6,7 +6,8 @@ import { useForm } from '@mantine/form';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { cloneElement, isValidElement, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import React from 'react';
 import { z, ZodSchema } from 'zod';
 
 import { Field, FieldType, Metadata, UseFindUniqueHook, UseMutationHook, UseQueryHook } from '../metadata';
@@ -316,21 +317,102 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 	const { metadata: originalMetadata, submitButtons } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
-
-	// Extract information
 	const fields = getModelFields(metadata, props.model);
+
+	// Helper function to recursively process children
+	const processChildren = (element: React.ReactNode): React.ReactNode => {
+		if (!isValidElement(element)) return element;
+
+		// Handle custom elements with data-field-name
+		if (element.props['data-field-name']) {
+			const fieldName = element.props['data-field-name'];
+			const field = fields[fieldName];
+
+			if (!field) {
+				console.warn(`Field ${fieldName} not found in model ${props.model}`);
+				return element;
+			}
+
+			return (
+				<ZenstackFormInputInternal
+					key={fieldName}
+					field={field}
+					index={-1}
+					{...props}
+					customElement={element}
+				/>
+			);
+		}
+
+		// Handle placeholder elements (data-placeholder-name)
+		if (element.props['data-placeholder-name']) {
+			const fieldName = element.props['data-placeholder-name'];
+			console.log('found placeholder', fieldName);
+			const field = fields[fieldName];
+
+			if (!field) {
+				console.warn(`Field ${fieldName} not found in model ${props.model}`);
+				return element;
+			}
+
+			return (
+				<ZenstackFormInputInternal
+					key={fieldName}
+					field={field}
+					index={-1}
+					{...props}
+				/>
+			);
+		}
+
+		// If element has children, clone it and process its children
+		if (element.props.children) {
+			return cloneElement(element, {
+				...element.props,
+				children: React.Children.map(element.props.children, processChildren),
+			});
+		}
+
+		return element;
+	};
+
+	// Helper to check if a field has either a custom element or placeholder
+	const hasCustomOrPlaceholder = (fieldName: string) => {
+		return React.Children.toArray(props.children).some(
+			child => isValidElement(child) && (
+				child.props['data-field-name'] === fieldName
+				|| child.props['data-placeholder-name'] === fieldName
+				// Also check nested children
+				|| (child.props.children && React.Children.toArray(child.props.children).some(
+					nestedChild => isValidElement(nestedChild) && (
+						nestedChild.props['data-field-name'] === fieldName
+						|| nestedChild.props['data-placeholder-name'] === fieldName
+					),
+				))
+			),
+		);
+	};
 
 	return (
 		<>
+			{/* Render default form fields that don't have custom elements or placeholders */}
 			{Object.values(fields).map((field, index) => {
+				if (hasCustomOrPlaceholder(field.name)) return null;
+
 				return (
-					<ZenstackFormInputInternal key={field.name} field={field} index={index} {...props} metadataOverride={props.metadataOverride}></ZenstackFormInputInternal>
+					<ZenstackFormInputInternal
+						key={field.name}
+						field={field}
+						index={index}
+						{...props}
+					/>
 				);
 			})}
 
-			{props.children}
+			{/* Render custom elements and placeholders */}
+			{React.Children.map(props.children, processChildren)}
 
-			{/* Errors and Submit Buttons */}
+			{/* Existing error and submit button rendering */}
 			{Object.keys(props.form.errors).length > 0 && (
 				<div style={{ flexShrink: 1 }}>
 					<p
@@ -368,6 +450,7 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 interface ZenstackFormInputProps extends ZenstackBaseFormProps {
 	field: Field
 	index: number
+	customElement?: React.ReactElement
 }
 const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	const { metadata: originalMetadata, elementMap, hooks, enumLabelTransformer } = useZenstackUIProvider();
@@ -502,6 +585,19 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 			props.form.setFieldValue(field.name, defaultValue);
 		});
 	};
+
+	// If we have a custom element, use it instead of the element mapping
+	if (props.customElement) {
+		return React.cloneElement(props.customElement, {
+			...props.form.getInputProps(fieldName),
+			onChange: handleChange,
+			required,
+			key: props.form.key(fieldName),
+			className: isDirty ? 'dirty' : '',
+			disabled: isDisabled,
+			placeholder: placeholder,
+		});
+	}
 
 	return (
 		<Element
