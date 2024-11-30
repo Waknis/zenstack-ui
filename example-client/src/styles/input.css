@@ -27,66 +27,37 @@
 }
 
 /* -------------------------------------------------------------------------------- */
-/* Select & SearchableSelect */
+/* Custom SearchableSelect */
 /* -------------------------------------------------------------------------------- */
-
-.mantine-Select-wrapper {
-
-	.mantine-Input-input {
-		transition: background-color 0.1s ease-in-out;
-
-		&:hover {
-			background-color: var(--btn-secondary);
-		}
-	}
-}
-
-.mantine-Select-dropdown {
-	padding-left: 0;
-}
-
-.mantine-Select-option {
-	padding: 0;
-	margin-left: 4px;
-	color: inherit; /* Prevent color from turning white by mantine in light theme while hovering*/
-	/* Right side already has 4px gap from the scroll area */
-	scroll-margin-top: 40px;
-}
-
-/* SearchableSelect text input styles */
-.mantine-Select-option[value="REPLACE_WITH_INPUT"] {
-	padding: 0;
-	margin: 0;
-}
 
 .mantine-Popover-dropdown {
 	background-color: var(--mantine-color-body);
 	border-color: var(--bd-light);
-
-	/* Remove focus ring on the search bar inside a select dropdown */
-	& .mantine-Input-input {
-		&:focus {
-			outline: none;
-		}
-	}
-}
-
-.mantine-Popover-arrow {
-	background-color: var(--mantine-color-body);
-	border-color: var(--bd-light);
-}
-
-/* Customize selected option style (hover or arrow key selection) */
-.mantine-Select-option:where([data-combobox-selected]) {
-	background-color: var(--btn-secondary);
 }
 
 
-/* Prevent hover from changing background color of unselected options */
-.mantine-Select-option:not([data-combobox-selected]) {
+.mantine-Combobox-option {
 	&:hover {
 		background-color: inherit;
+		color: inherit;
 	}
+
+	&[data-combobox-selected] {
+		background-color: var(--btn-secondary);
+		color: var(--btn-default);
+	}
+}
+
+.mantine-Combobox-dropdown {
+	padding: 0 !important;
+}
+
+.mantine-Combobox-search {
+	margin: 0;
+}
+
+.mantine-Combobox-options {
+	padding: 4px;
 }
 
 

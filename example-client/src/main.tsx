@@ -125,7 +125,7 @@ if (!rootElement.innerHTML) {
 			<trpc.Provider client={trpcClient} queryClient={queryClient}>
 				<QueryClientProvider client={queryClient}>
 					<ZenStackHooksProvider value={{ endpoint: `${serverUrl}/api/model` }}>
-						<MantineProvider theme={theme} defaultColorScheme="auto">
+						<MantineProvider theme={theme} defaultColorScheme="dark">
 							<ZenstackUIProvider config={zenstackUIConfig}>
 								<ModalsProvider>
 									<RouterProvider router={router} />

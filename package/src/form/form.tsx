@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable no-useless-assignment */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from '@mantine/form';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { z } from 'zod';
 
 import { Field, FieldType, UseFindUniqueHook, UseMutationHook, UseQueryHook } from '../metadata';
@@ -89,7 +91,6 @@ const focusOnPrevActiveElement = () => {
 
 // --------------------------------------------------------------------------------
 // Update Form
-// TODO: There is a bug where if the data loads before a reference field list is ready, then the select field will display empty until clicked. Ex: data loads with owner Kiran, but the list of owners is not ready yet. form tries to set the value to Kiran, but the list is empty so it shows empty. Temp fix as been implemented by checking for reference field list data in both Update and Base Form.
 // --------------------------------------------------------------------------------
 export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 	const { schemas, metadata, hooks } = useZenstackUIProvider();
@@ -109,22 +110,21 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 
 	// Fetch reference field values
 	// This is already being done in the base form, but doing it here again to trigger a re-render when the data is loaded
-	const referenceFields = Object.values(fields).filter(field => field.isDataModel);
-	const referenceQueries = referenceFields.map((field) => {
-		const useQueryDataHook = hooks[`useFindMany${field.type}`] as UseQueryHook<any>;
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		return useQueryDataHook();
-	});
-	const allReferencesLoaded = referenceQueries.every(query => query?.data);
+	// const referenceFields = Object.values(fields).filter(field => field.isDataModel);
+	// const referenceQueries = referenceFields.map((field) => {
+	// 	const useQueryDataHook = hooks[`useFindMany${field.type}`] as UseQueryHook<any>;
+	// 	return useQueryDataHook();
+	// });
+	// const allReferencesLoaded = referenceQueries.every(query => query?.data);
 
 	// This fixes the race condition bug by setting the form data again after references are loaded.
 	// Ideally, each field should be updated on it's own
-	useEffect(() => {
-		console.log('allReferencesLoaded:', allReferencesLoaded);
-		if (allReferencesLoaded) {
-			form.setValues(data || {});
-		}
-	}, [allReferencesLoaded]);
+	// useEffect(() => {
+	// 	console.log('allReferencesLoaded:', allReferencesLoaded);
+	// 	if (allReferencesLoaded) {
+	// 		form.setValues(data || {});
+	// 	}
+	// }, [allReferencesLoaded]);
 
 	// Setup form
 	const form = useForm({
@@ -136,6 +136,8 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 
 	// When the id changes, set all values to null. Setting to empty object doesn't work
 	useEffect(() => {
+		console.log('setting all values to null');
+
 		const emptyValues = Object.keys(fields).reduce((acc, key) => {
 			// Skip isDataModel fields
 			if (fields[key].isDataModel) return acc;
@@ -251,111 +253,16 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 // Base Form (shared between create/update forms)
 // --------------------------------------------------------------------------------
 const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
-	console.log('rendering ZenstackBaseForm, type:', props.type);
-
-	// eslint-disable-next-line no-useless-assignment
-	const { metadata, elementMap, hooks, submitButtons } = useZenstackUIProvider();
+	const { metadata, submitButtons } = useZenstackUIProvider();
 
 	// Extract information
 	const fields = getModelFields(metadata, props.model);
-	const zodShape = props.schema.shape;
-
-	// Fetch reference field values
-	const listDataForReferenceFields: Record<string, { data: any[] }> = {};
-	Object.values(fields).forEach((field) => {
-		if (field.isDataModel) {
-			const useQueryDataHook = hooks[`useFindMany${field.type}`] as UseQueryHook<any>;
-			// eslint-disable-next-line react-hooks/rules-of-hooks
-			listDataForReferenceFields[field.name] = useQueryDataHook();
-		}
-	});
-
-	// Wait for reference data to be fetched
-	const allQueriesFinished = Object.values(listDataForReferenceFields)
-		.every(query => query?.data);
-	console.log('allQueriesFinished:', allQueriesFinished);
-
-	// if (!allQueriesFinished) return null;
 
 	return (
 		<>
 			{Object.values(fields).map((field) => {
-				// Skip hidden, foreign keys, array fields
-				if (field.hidden) return null;
-				if (field.isDataModel) return null;
-				if (field.isArray) return null;
-
-				// Define attributes
-				let fieldType = field.type as FieldType;
-				let fieldName = field.name;
-				let labelData = {};
-				let label = field.name;
-				let zodDef = zodShape[fieldName]['_def'];
-				let zodFieldType = zodDef['typeName'];
-
-				// Check for optionals, and get inner type
-				let required = true;
-				if (zodFieldType === 'ZodOptional') {
-					required = false;
-					zodDef = zodDef['innerType']['_def'];
-					zodFieldType = zodDef['typeName'];
-				}
-
-				// Update attributes depending on field type
-				if (zodFieldType === 'ZodEnum') {
-					// Enum type - Update attributes
-					fieldType = FieldType.Enum;
-					labelData = zodDef['values'].map((value: any) => {
-						return {
-							label: value,
-							value: value,
-						};
-					});
-				} else if (field.isForeignKey) {
-					// Reference type - Update attributes
-					fieldType = FieldType.ReferenceSingle;
-					fieldName = field.name;
-					label = field.relationField!;
-
-					// Generate label data for relation
-					const dataModelField = fields[field.relationField!];
-					const relationFields = getModelFields(metadata, dataModelField.type);
-					const relationIdField = getIdField(relationFields);
-
-					if (listDataForReferenceFields[field.relationField!].data) {
-						labelData = listDataForReferenceFields[field.relationField!].data.map((item: any) => {
-							return {
-								label: item[relationIdField.name!],
-								value: item[relationIdField.name!],
-							};
-						});
-					} else {
-						labelData = [{ label: 'Loading...', value: 'Loading...' }];
-					}
-				}
-
-				// Get the appropriate element from elementMap based on field type
-				const Element = elementMap[fieldType];
-				const isDirty = props.type === 'update' && props.form.getDirty()[fieldName];
-
-				if (!Element) {
-					// console.error(`No element mapping found for field type: ${field.type}`);
-					return <div style={{ color: 'red' }} key={fieldName}>Error: No element mapping found for field type: {fieldType}</div>;
-				}
-
-				let placeholder;
-				if (props.type === 'update') placeholder = 'Loading...';
-
 				return (
-					<Element
-						placeholder={placeholder}
-						required={required}
-						key={props.form.key(fieldName)}
-						label={label}
-						data={labelData}
-						className={isDirty ? 'dirty' : ''}
-						{...props.form.getInputProps(fieldName)}
-					/>
+					<ZenstackFormInput key={field.name} field={field} {...props}></ZenstackFormInput>
 				);
 			})}
 
@@ -384,5 +291,113 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 				/>
 			)}
 		</>
+	);
+};
+
+interface ZenstackFormInputProps extends ZenstackBaseFormProps {
+	field: Field
+}
+const ZenstackFormInput = (props: ZenstackFormInputProps) => {
+	const { metadata, elementMap, hooks } = useZenstackUIProvider();
+	const fields = getModelFields(metadata, props.model);
+	const zodShape = props.schema.shape;
+	const field = props.field;
+
+	// Get the hook function unconditionally
+	const useQueryDataHook = useMemo(() => {
+		if (!field.isForeignKey) return null;
+		const dataModelField = fields[field.relationField!];
+		return hooks[`useFindMany${dataModelField.type}`] as UseQueryHook<any>;
+	}, [field.isForeignKey, field.relationField, fields, hooks]);
+
+	// Call the hook unconditionally (if it exists)
+	const referenceFieldData = useQueryDataHook ? useQueryDataHook() : { data: null };
+
+	useEffect(() => {
+		if (!field.isForeignKey) return;
+		const value = props.form.getValues()[field.name];
+
+		if (referenceFieldData?.data && value !== null) {
+			props.form.setInitialValues({ ...props.form.getValues(), [field.name]: `${value}` });
+			props.form.setFieldValue(field.name, `${value}`);
+		}
+	}, [referenceFieldData?.data]);
+
+	// Skip hidden, foreign keys, array fields
+	if (field.hidden) return null;
+	if (field.isDataModel) return null;
+	if (field.isArray) return null;
+
+	// Define attributes
+	let fieldType = field.type as FieldType;
+	let fieldName = field.name;
+	let labelData = {};
+	let label = field.name;
+	let zodDef = zodShape[fieldName]['_def'];
+	let zodFieldType = zodDef['typeName'];
+
+	// Check for optionals, and get inner type
+	let required = true;
+	if (zodFieldType === 'ZodOptional') {
+		required = false;
+		zodDef = zodDef['innerType']['_def'];
+		zodFieldType = zodDef['typeName'];
+	}
+
+	// Update attributes depending on field type
+	if (zodFieldType === 'ZodEnum') {
+		// Enum type - Update attributes
+		fieldType = FieldType.Enum;
+		labelData = zodDef['values'].map((value: any) => {
+			return {
+				label: value,
+				value: value,
+			};
+		});
+	} else if (field.isForeignKey) {
+		// Reference type - Update attributes
+		fieldType = FieldType.ReferenceSingle;
+		fieldName = field.name;
+		label = field.relationField!;
+
+		// Generate label data for relation
+		const dataModelField = fields[field.relationField!];
+		const relationFields = getModelFields(metadata, dataModelField.type);
+		const relationIdField = getIdField(relationFields);
+
+		if (referenceFieldData?.data) {
+			labelData = referenceFieldData.data.map((item: any) => {
+				return {
+					label: item[relationIdField.name!],
+					value: item[relationIdField.name!],
+				};
+			});
+		} else {
+			labelData = [{ label: 'Loading...', value: 'Loading...' }];
+		}
+	}
+
+	// Get the appropriate element from elementMap based on field type
+	const Element = elementMap[fieldType];
+	const isDirty = props.type === 'update' && props.form.getDirty()[fieldName];
+
+	if (!Element) {
+		console.error(`No element mapping found for field type: ${field.type}`);
+		return <div style={{ color: 'red' }} key={fieldName}>Error: No element mapping found for field type: {fieldType}</div>;
+	}
+
+	let placeholder;
+	if (props.type === 'update') placeholder = 'Loading...';
+
+	return (
+		<Element
+			placeholder={placeholder}
+			required={required}
+			key={props.form.key(fieldName)}
+			label={label}
+			data={labelData}
+			className={isDirty ? 'dirty' : ''}
+			{...props.form.getInputProps(fieldName)}
+		/>
 	);
 };

@@ -1,328 +1,156 @@
-import { Select, type SelectProps, TextInput } from '@mantine/core';
-import { useHover } from '@mantine/hooks';
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Combobox, type ComboboxStore, Input, InputBase, ScrollArea, useCombobox } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { LuCheckCircle2, LuSearch } from 'react-icons/lu';
 
-// TODO: Allow pasing in custom rendering function (for option or group header)
-// TODO: Switch render function if isGroupHeader is true
-// In the future, it's better to create a custom component from scratch using Combobox instead of Select
+// This component is an in-progress rewrite of SearchableSelect
+// It uses custom Mantine Combobox components instead of customizing an existing Select
+// This version will have better functionality and performance
 
-// Create context and its type
-interface SearchableSelectContextType {
-	searchText: string
-	setSearchText: (text: string) => void
-	enterPressed: boolean
-	setEnterPressed: (pressed: boolean) => void
-	dropdownOpened: boolean
-	setDropdownOpened: (opened: boolean) => void
-	filteredOptionCount: number
-	setFilteredOptionCount: (count: number) => void
-	selectedIndex: number
-	setSelectedIndex: (index: number) => void
-}
-const SearchableSelectContext = createContext<SearchableSelectContextType | null>(null);
+/**
+ * MySelect - a better version of the Mantine Select component
+ * This component borrows the design of the shadcn select component
+ * - Supports numbers for values
+ * - Uses seaparate search input in dropdown
+ * - Automatically changes active element when scrolling (just like shadcn)
+ *
+ */
 
-// --------------------------------------------------------------------------------
-// Custom types to add number support to Combobox
-// --------------------------------------------------------------------------------
-type CustomComboboxItemValue = string | number;
+type BaseValue = number | string;
 
-export interface CustomComboboxItem {
+interface SelectValue {
 	label: string
-	value: CustomComboboxItemValue
-	disabled?: boolean
+	value: BaseValue
 }
 
-interface CustomComboboxItemGroup<T = CustomComboboxItem | CustomComboboxItemValue> {
-	group: string
-	items: T[]
+interface SearchableSelectProps {
+	data: SelectValue[]
+	value?: BaseValue | null
+	onChange?: (value: BaseValue | null) => void
+	onBlur?: () => void
+	onFocus?: () => void
+	defaultValue?: BaseValue | null
+	inputPlaceholder?: string
+	searchPlaceholder?: string
+	label?: string
+	description?: string
+	className?: string
 }
 
-type SelectData = (CustomComboboxItemValue | CustomComboboxItem | CustomComboboxItemGroup<string | CustomComboboxItem>)[];
-
-type CustomSelectProps = Omit<SelectProps, 'data'> & {
-	data: SelectData
+const selectDropdownTransition = {
+	in: { opacity: 1, transform: 'scale(1)' },
+	out: { opacity: 0, transform: 'scale(0.95)' },
+	common: { transformOrigin: 'top' },
+	transitionProperty: 'transform, opacity',
 };
 
-interface StandardizedSelectOption {
-	label: string
-	value: string
-	index: number
-	isGroupHeader: boolean
-}
-
-/** Transforms the select props input data to a custom format we use */
-const transformData = (data: SelectData): StandardizedSelectOption[] => {
-	return data.flatMap((item, index) => {
-		if (typeof item === 'string' || typeof item === 'number') {
-			return {
-				label: item.toString(),
-				value: item.toString(),
-				index,
-				isGroupHeader: false,
-			};
-		} else if ('label' in item && 'value' in item) {
-			return {
-				label: item.label,
-				value: item.value.toString(),
-				index,
-				isGroupHeader: false,
-			};
-		} else if ('group' in item && 'items' in item) {
-			// Handle ComboboxItemGroup
-			return [
-				{
-					label: item.group,
-					value: '',
-					index,
-					isGroupHeader: true,
-				},
-				...item.items.map((subItem, subIndex) => ({
-					label: typeof subItem === 'string' ? subItem : subItem.label,
-					value: typeof subItem === 'string' ? subItem : subItem.value.toString(),
-					index: subIndex,
-					isGroupHeader: false,
-				})),
-			];
-		}
-		return [];
-	});
-};
-
-// --------------------------------------------------------------------------------
-// SearchableSelect
-// --------------------------------------------------------------------------------
-export function SearchableSelect(props: CustomSelectProps) {
-	const stringDefaultValue = props.defaultValue?.toString();
-	const [searchText, setSearchText] = useState('');
-	const [enterPressed, setEnterPressed] = useState(false);
-	const [dropdownOpened, setDropdownOpened] = useState(false);
-	const [filteredOptionCount, setFilteredOptionCount] = useState(0);
-	const [selectedIndex, setSelectedIndex] = useState(0);
-	const [filteredData, setFilteredData] = useState<SelectData>(transformData(props.data));
-	const comboboxRef = useRef<HTMLInputElement>(null);
-
-	const contextValue = {
-		searchText,
-		setSearchText,
-		enterPressed,
-		setEnterPressed,
-		dropdownOpened,
-		setDropdownOpened,
-		filteredOptionCount,
-		setFilteredOptionCount,
-		selectedIndex,
-		setSelectedIndex,
-	};
-
-	const handleDropdownOpen = () => {
-		setSearchText('');
-		setDropdownOpened(true);
-		setSelectedIndex(0);
-	};
-
-	const handleDropdownClose = () => {
-		setDropdownOpened(false);
-		setSelectedIndex(-1);
-		comboboxRef.current?.focus();
-	};
-
-	useEffect(() => {
-		// Filter the data based on searchText
-		const filtered = transformData(props.data)
-			.filter(item => item.label.toLowerCase().includes(searchText.toLowerCase()))
-			.map((item, index) => ({ ...item, index })); // Add index after filtering
-
-		// Add the "REPLACE_WITH_INPUT" item at the beginning of the filtered array
-		setFilteredData(['REPLACE_WITH_INPUT', ...filtered]);
-		setFilteredOptionCount(filtered.length);
-		setSelectedIndex(0);
-	}, [searchText, props.data]);
-
-	if (!props.data) return null;
-
-	// Set disabled and placeholder if no options are available
-	let disabled = false;
-	let placeholder = props.placeholder;
-	if (props.data.length === 0) {
-		disabled = true;
-		placeholder = 'No options available';
-	}
-
-	// Override onChange to allow using numerical data for values
-	const handleChange = (value: string | null, option: CustomComboboxItem) => {
-		const isNumericalData = props.data.some((item) => {
-			if (typeof item === 'number') return true;
-			if (typeof item === 'object' && 'value' in item && typeof item.value === 'number') return true;
-			if (typeof item === 'object' && 'items' in item) {
-				return item.items.some(subItem => typeof subItem === 'number' || (typeof subItem === 'object' && 'value' in subItem && typeof subItem.value === 'number'));
-			}
-			return false;
-		});
-
-		if (isNumericalData) props.onChange?.(Number(value), option);
-		else props.onChange?.(value, option);
+function SearchableSelectOption({ item, selectedValue, combobox, index }: { item: SelectValue, selectedValue: BaseValue | null, combobox: ComboboxStore, index: number }) {
+	// Use mouseMove instead of mouseEnter to avoid resetting the selection when arrow keys are used
+	const handleMouseMove = () => {
+		combobox.selectOption(index);
 	};
 
 	return (
-		<SearchableSelectContext.Provider value={contextValue}>
-			<Select
-				searchable={false}
-				disabled={disabled}
-				placeholder={placeholder}
-				className="m-0 w-full p-0"
-				renderOption={renderSelectOption}
-				onDropdownOpen={handleDropdownOpen}
-				onDropdownClose={handleDropdownClose}
-				{...props}
-				defaultValue={stringDefaultValue}
-				data={filteredData}
-				ref={comboboxRef}
-				onChange={handleChange}
-			/>
-		</SearchableSelectContext.Provider>
-	);
-}
-
-// Add a custom hook for using the context
-function useSearchableSelect() {
-	const context = useContext(SearchableSelectContext);
-	if (!context) {
-		throw new Error('useSearchableSelect must be used within SearchableSelectContext.Provider');
-	}
-	return context;
-}
-
-// --------------------------------------------------------------------------------
-// Helper - Option Component
-// --------------------------------------------------------------------------------
-
-interface CustomComboboxItemRenderOptions {
-	option: CustomComboboxItem & { index: number }
-	checked?: boolean
-}
-
-function SearchableSelectOption(props: CustomComboboxItemRenderOptions) {
-	const { selectedIndex, setSelectedIndex, enterPressed, setEnterPressed } = useSearchableSelect();
-	const { hovered, ref } = useHover<HTMLDivElement>();
-
-	useEffect(() => {
-		if (hovered) setSelectedIndex(props.option.index);
-	}, [hovered]);
-
-	// When the selected index changes, set the selected attribute on the option
-	useEffect(() => {
-		if (props.option.index === selectedIndex) {
-			ref.current?.parentElement?.setAttribute('data-combobox-selected', 'true');
-			if (!hovered) ref.current?.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-		} else {
-			ref.current?.parentElement?.removeAttribute('data-combobox-selected');
-		}
-	}, [props.option.index, selectedIndex]);
-
-	// Trigger - when enter key is pressed, trigger option selection
-	useEffect(() => {
-		if (enterPressed && props.option.index === selectedIndex) {
-			ref.current?.click();
-		}
-		setEnterPressed(false);
-	}, [enterPressed]);
-
-	return (
-		<div className="flex w-full items-center px-[10px] py-[6px]" ref={ref}>
-			{/* Icon */}
+		<Combobox.Option value={item.label} key={item.value} active={item.value === selectedValue} className="flex w-full items-center" onMouseMove={handleMouseMove}>
 			<div className="flex w-6 items-center">
-				{props.checked && <LuCheckCircle2 />}
+				{item.value === selectedValue && <LuCheckCircle2 />}
 			</div>
-			{props.option.label}
-		</div>
+			{item.label}
+		</Combobox.Option>
 	);
 }
 
-const renderSelectOption: SelectProps['renderOption'] = props => (
-	<>
-		{props.option.label === 'REPLACE_WITH_INPUT'
-			? (<SearchableSelectSearchField />)
-			: (<SearchableSelectOption {...props} />)}
-	</>
-);
+export function SearchableSelect(props: SearchableSelectProps) {
+	const combobox = useCombobox({
+		onDropdownClose: () => {
+			combobox.resetSelectedOption();
+			combobox.focusTarget();
+		},
+		onDropdownOpen: () => {
+			setSearch('');
+			combobox.selectFirstOption();
+			combobox.focusSearchInput();
+		},
+	});
 
-// --------------------------------------------------------------------------------
-// Helper - Search Field (1st option)
-// --------------------------------------------------------------------------------
-function SearchableSelectSearchField() {
-	const {
-		dropdownOpened,
-		searchText,
-		setSearchText,
-		filteredOptionCount,
-		selectedIndex,
-		setSelectedIndex,
-		setEnterPressed,
-		setDropdownOpened,
-	} = useSearchableSelect();
+	const [search, setSearch] = useState('');
+	const [internalValue, setInternalValue] = useState<BaseValue | null>(props.defaultValue ?? null);
 
-	const textInputRef = useRef<HTMLInputElement>(null);
+	const value = props.value !== undefined ? props.value : internalValue;
+	const selectedItem = props.data.find(item => item.value === value);
+	const selectedLabel = selectedItem?.label || '';
 
-	// Needed to stop the dropdown from closing, and instead focus the input
-	const handleTextInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
-		e.stopPropagation();
-		textInputRef.current?.focus();
-	};
+	// Filter options based on search
+	const filteredOptions = props.data.filter(item =>
+		item.label.toLowerCase().includes(search.toLowerCase().trim()),
+	);
 
-	// Focus the input after the dropdown opens. Without a delay, the input doesn't get focused.
 	useEffect(() => {
-		if (dropdownOpened) {
-			setTimeout(() => {
-				textInputRef.current?.focus();
-			}, 100);
-		}
-	}, [dropdownOpened]);
+		combobox.selectFirstOption();
+	}, [search]);
 
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === 'ArrowDown') {
-			setSelectedIndex(Math.min(selectedIndex + 1, filteredOptionCount - 1));
-		} else if (e.key === 'ArrowUp') {
-			setSelectedIndex(Math.max(selectedIndex - 1, 0));
-		} else if (e.key === 'Enter') {
-			e.preventDefault();
-			setEnterPressed(true);
-		}
-	};
+	const options = filteredOptions.map((item, index) => (
+		<SearchableSelectOption key={item.value} item={item} selectedValue={value} combobox={combobox} index={index} />
+	));
 
-	// When the dropdown is closed, an onChange is triggered with empty text causing an animation rerender + flicker
-	// This prevents it from being registered by first ensuring that the dropdown is still open
-	const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (dropdownOpened) {
-			setSearchText(e.currentTarget.value);
-		}
-	};
+	const inputPlaceholder = props.inputPlaceholder || 'Pick value';
 
 	return (
-		// Add 4px to the width to account for the scrollarea padding
-		<div className="relative mb-[4px] w-[calc(100%+4px)] cursor-default" onClick={handleTextInputClick}>
+		<Combobox
+			styles={{
+				search: {
+					width: '100%',
+					borderBottom: '1px solid var(--bd-light)',
+					backgroundColor: 'var(--mantine-body)',
+					height: '40px',
+				},
+			}}
+			transitionProps={{ transition: selectDropdownTransition, duration: 100 }}
+			store={combobox}
+			withinPortal={true}
+			onOptionSubmit={(label) => {
+				const selected = props.data.find(item => item.label === label);
+				const newValue = selected?.value ?? null;
+				if (props.value !== undefined) {
+					props.onChange?.(newValue);
+				} else {
+					setInternalValue(newValue);
+					props.onChange?.(newValue);
+				}
+				combobox.closeDropdown();
+			}}
+		>
+			<Combobox.Target>
+				<InputBase
+					label={props.label}
+					description={props.description}
+					className={`mantine-Select-wrapper ${props.className || ''}`}
+					component="button"
+					type="button"
+					pointer
+					rightSection={<Combobox.Chevron />}
+					onClick={() => combobox.toggleDropdown()}
+					onFocus={props.onFocus}
+					onBlur={props.onBlur}
+					rightSectionPointerEvents="none"
+				>
+					{selectedLabel || <Input.Placeholder>{inputPlaceholder}</Input.Placeholder>}
+				</InputBase>
+			</Combobox.Target>
 
-			{/* Search input */}
-			<TextInput
-				data-mantine-stop-propagation="true" // prevents escape key from closing a modal
-				leftSection={<LuSearch />}
-				placeholder="Search..."
-				variant="unstyled"
-				value={searchText}
-				onChange={handleTextInputChange}
-				className="fixed mb-[2px] mt-[-2px] w-full border-b border-b-bd-light bg-mantine-body pb-[2px]"
-				ref={textInputRef}
-				onKeyDown={handleKeyDown}
-			/>
-
-			<div className="h-[37px] bg-red-500"></div>
-
-			{/* No results text */}
-			{searchText !== '' && filteredOptionCount === 0 && (
-				<div className="w-full px-3 pt-2">
-					No results found.
-				</div>
-			)}
-		</div>
+			<Combobox.Dropdown>
+				<Combobox.Search
+					leftSection={<LuSearch size={14} />}
+					variant="unstyled"
+					value={search}
+					onChange={event => setSearch(event.currentTarget.value)}
+					placeholder="Search..."
+				/>
+				<Combobox.Options>
+					<ScrollArea.Autosize type="scroll" mah={200}>
+						{options.length > 0 ? options : <Combobox.Empty className="text-left">Nothing found</Combobox.Empty>}
+					</ScrollArea.Autosize>
+				</Combobox.Options>
+			</Combobox.Dropdown>
+		</Combobox>
 	);
 }

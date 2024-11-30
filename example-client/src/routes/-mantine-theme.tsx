@@ -1,4 +1,4 @@
-import { Checkbox, ScrollArea } from '@mantine/core';
+import { Checkbox, Combobox, ScrollArea } from '@mantine/core';
 import { Button, Modal, Select, TextInput, Tooltip } from '@mantine/core';
 import { createTheme } from '@mantine/core';
 
@@ -22,18 +22,15 @@ export const theme = createTheme({
 				autoContrast: true,
 			},
 		}),
-		TextInput: TextInput.extend({
+		Combobox: Combobox.extend({
 			defaultProps: {
-				type: 'search', // disable autocomplete by default for SearchableSelect
+				offset: 6,
+				shadow: 'md',
 			},
 		}),
 		Select: Select.extend({
 			defaultProps: {
-				// size: 'xs',
-				// selectFirstOptionOnChange: true,
 				comboboxProps: {
-					shadow: 'md',
-					offset: 4,
 					transitionProps: { transition: selectDropdownTransition, duration: 100 },
 				},
 				allowDeselect: false,
