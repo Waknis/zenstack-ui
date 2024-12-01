@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { QueryClient } from '@tanstack/react-query';
 import { createContext, useContext } from 'react';
 import { z } from 'zod';
 
@@ -22,6 +23,7 @@ export interface ZenstackUIConfigType {
 	elementMap: MapFieldTypeToElement
 	submitButtons: MapSubmitTypeToButton
 	hooks: Record<string, UseQueryHook<any> | any>
+	queryClient: QueryClient
 
 	/** Transform enum labels for display. For example, convert 'first_name' to 'First Name' */
 	enumLabelTransformer?: (label: string) => string

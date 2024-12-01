@@ -1,7 +1,7 @@
 {
 	"name": "zenstack-ui",
 	"description": "Customizable react components for zenstack (forms/lists/etc.)",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/kirankunigiri/zenstack-ui",

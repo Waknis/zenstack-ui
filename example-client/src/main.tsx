@@ -17,12 +17,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { toast } from 'sonner';
 
-import { zenstackUIConfig } from '~client/form/form-config';
+import { baseZenstackUIConfig } from '~client/form/form-config';
 import { theme } from '~client/routes/-mantine-theme';
 import { routeTree } from '~client/routeTree.gen';
 import type { AppRouter } from '~server/api';
 import { Provider as ZenStackHooksProvider } from '~zenstack/hooks';
-import { ZenstackUIProvider } from '~zenstack-ui/utils/provider';
+import { type ZenstackUIConfigType, ZenstackUIProvider } from '~zenstack-ui/utils/provider';
 
 // --------------------------------------------------------------------------------
 // TanStack Router Setup
@@ -112,6 +112,12 @@ export const queryClient = new QueryClient({
 		},
 	}),
 });
+
+// ZenstackUIConfig with queryClient
+const zenstackUIConfig: ZenstackUIConfigType = {
+	...baseZenstackUIConfig,
+	queryClient,
+};
 
 // --------------------------------------------------------------------------------
 // Render

@@ -68,9 +68,9 @@ meta.models.item.fields.ownerName.filter = (itemFields: typeof meta.models.item.
 	return ownerFields.roomId === itemFields.roomId;
 };
 
-export const zenstackUIConfig: ZenstackUIConfigType = {
-	hooks: hooks,
-	schemas: schemas,
+export const baseZenstackUIConfig = {
+	hooks,
+	schemas,
 	metadata: meta,
 	elementMap: mapFieldTypeToElement,
 	submitButtons: submitButtonMap,

@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from '@mantine/form';
 import { getHotkeyHandler } from '@mantine/hooks';
-import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { cloneElement, isValidElement, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import React from 'react';
@@ -120,9 +119,8 @@ const focusOnPrevActiveElement = () => {
 // Update Form
 // --------------------------------------------------------------------------------
 export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
-	const { hooks, schemas, metadata: originalMetadata } = useZenstackUIProvider();
+	const { hooks, schemas, metadata: originalMetadata, queryClient } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
-	const queryClient = useQueryClient();
 
 	// Extract information
 	const mainSchema = props.schemaOverride || schemas[`${props.model}Schema`]; // we don't use update schema because that will mark everything as optional
@@ -239,9 +237,8 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 // Create Form
 // --------------------------------------------------------------------------------
 export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
-	const { hooks, schemas, metadata: originalMetadata } = useZenstackUIProvider();
+	const { hooks, schemas, metadata: originalMetadata, queryClient } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
-	const queryClient = useQueryClient();
 
 	// Extract information
 	const createSchema: ZodSchema = props.schemaOverride || schemas[`${props.model}CreateSchema`];
@@ -281,6 +278,7 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 			if (props.overrideSubmit) {
 				await props.overrideSubmit(values);
 				props.onSubmit?.(values);
+
 				// Invalidate all queries for this model
 				queryClient.invalidateQueries({
 					predicate: (query) => {
