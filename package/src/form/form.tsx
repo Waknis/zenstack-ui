@@ -42,7 +42,7 @@ type ZenstackCreateFormProps = ZenstackSharedFormProps;
 
 interface ZenstackBaseFormProps extends ZenstackSharedFormProps {
 	form: ReturnType<typeof useForm>
-	schema: z.ZodObject<any>
+	schema: ZodSchema
 	type: 'create' | 'update'
 
 	// Loading states
@@ -459,7 +459,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	const metadata = props.metadataOverride || originalMetadata;
 
 	const fields = getModelFields(metadata, props.model);
-	const zodShape = props.schema.shape;
+	const zodShape = ('shape' in props.schema ? props.schema.shape : {}) as Record<string, z.ZodTypeAny>;
 	const field = props.field;
 
 	// Get the hook function unconditionally
@@ -482,8 +482,8 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	let fieldName = field.name;
 	let labelData = {};
 	let label = field.label || field.name;
-	let zodDef = zodShape[fieldName]['_def'];
-	let zodFieldType = zodDef['typeName'];
+	let zodDef = zodShape[fieldName]?._def;
+	let zodFieldType = zodDef?.typeName;
 
 	// Check for optionals, and get inner type
 	let required = true;

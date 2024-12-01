@@ -50,6 +50,7 @@ model Room {
 	items       Item[]
 	people      Person[]
 	description String?
+	testDefaultValue String @default("Here's a default string for you.")
 	aiSummary   String
 }
 
