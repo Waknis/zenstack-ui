@@ -13,6 +13,8 @@ import { Field, FieldType, Metadata, UseFindUniqueHook, UseMutationHook, UseQuer
 import { useZenstackUIProvider } from '../utils/provider';
 import { getIdField, getModelFields } from '../utils/utils';
 
+const LOADING_PLACEHOLDER = 'Loading...';
+
 // Form ref type
 export interface ZenstackFormRef {
 	form: ReturnType<typeof useForm>
@@ -548,7 +550,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 				};
 			});
 		} else {
-			labelData = [{ label: 'Loading...', value: 'Loading...' }];
+			labelData = [{ label: LOADING_PLACEHOLDER, value: LOADING_PLACEHOLDER }];
 		}
 	}
 
@@ -572,7 +574,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	}
 
 	let placeholder = field.placeholder;
-	if (props.isLoadingInitialData) placeholder = 'Loading...';
+	if (props.isLoadingInitialData) placeholder = LOADING_PLACEHOLDER;
 
 	// Create wrapped onChange handler
 	// This handler is used to reset dependent fields when the main field changes (using dependsOn from metadata)
@@ -601,15 +603,30 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 		const dirtyClassName = isDirty ? 'dirty' : '';
 		const combinedClassName = `${originalClassName} ${dirtyClassName}`.trim();
 
-		return React.cloneElement(props.customElement, {
+		// Create base props that we want to pass
+		const baseProps = {
 			...props.form.getInputProps(fieldName),
-			onChange: handleChange,
+			'onChange': handleChange,
 			required,
-			key: props.form.key(fieldName),
-			className: combinedClassName,
-			disabled: isDisabled,
-			placeholder: placeholder,
-		});
+			'key': props.form.key(fieldName),
+			'className': combinedClassName,
+			'disabled': isDisabled,
+			'placeholder': placeholder,
+			label,
+			'data': labelData,
+			'data-autofocus': props.index === 0,
+		};
+
+		// Filter out props that are already defined in customElement
+		const finalProps = Object.fromEntries(
+			Object.entries(baseProps).filter(([key]) =>
+				props.customElement!.props[key] === undefined,
+			),
+		);
+		// For custom elements, we need to prioritize the loading placeholder
+		if (props.isLoadingInitialData) finalProps.placeholder = LOADING_PLACEHOLDER;
+
+		return React.cloneElement(props.customElement, finalProps);
 	}
 
 	return (

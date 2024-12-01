@@ -29,7 +29,7 @@ interface SearchableSelectProps {
 	onBlur?: () => void
 	onFocus?: () => void
 	defaultValue?: BaseValue | null
-	inputPlaceholder?: string
+	placeholder?: string
 	searchPlaceholder?: string
 	label?: string
 	description?: string
@@ -94,7 +94,7 @@ export function SearchableSelect(props: SearchableSelectProps) {
 		<SearchableSelectOption key={item.value} item={item} selectedValue={value} combobox={combobox} index={index} />
 	));
 
-	const inputPlaceholder = props.inputPlaceholder || 'Select...';
+	const inputPlaceholder = props.placeholder || 'Select...';
 
 	return (
 		<Combobox
