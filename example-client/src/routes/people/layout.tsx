@@ -1,9 +1,9 @@
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
-import { PersonSchema } from '@zenstackhq/runtime/zod/models';
 
 import { ListHeader } from '~client/form/lib/list-header';
 import ListSkeleton from '~client/form/lib/skeleton';
-import ZenstackList from '~zenstack-ui/list/list';
+import type { PersonSchema } from '~zenstack/zod/models';
+import { ZenstackList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/people')({
 	component: PeopleLayout,

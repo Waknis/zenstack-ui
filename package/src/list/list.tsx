@@ -3,13 +3,13 @@ import { UseQueryHook } from '../metadata';
 import { useZenstackUIProvider } from '../utils/provider';
 import { getIdField, getModelFields } from '../utils/utils';
 
-interface ZenstackListProps<T> {
+export interface ZenstackListProps<T> {
 	model: string
 	render: (item: T) => React.ReactNode
 	skeleton?: React.ReactNode
 }
 
-const ZenstackList = <T extends Record<string, any>>(props: ZenstackListProps<T>) => {
+export const ZenstackList = <T extends Record<string, any>>(props: ZenstackListProps<T>) => {
 	const { model, render, skeleton } = props;
 	const { hooks, metadata } = useZenstackUIProvider();
 	const useFindManyHook = hooks[`useFindMany${model}`] as UseQueryHook<T>;
@@ -29,5 +29,3 @@ const ZenstackList = <T extends Record<string, any>>(props: ZenstackListProps<T>
 		</>
 	);
 };
-
-export default ZenstackList;

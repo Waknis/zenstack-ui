@@ -3,7 +3,7 @@ import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
 import { ListHeader } from '~client/form/lib/list-header';
 import ListSkeleton from '~client/form/lib/skeleton';
 import type { ItemSchema } from '~zenstack/zod/models';
-import ZenstackList from '~zenstack-ui/list/list';
+import { ZenstackList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/items')({
 	component: ItemsLayout,

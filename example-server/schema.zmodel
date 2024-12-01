@@ -10,6 +10,7 @@ plugin hooks {
 
 plugin zod {
 	provider = '@core/zod'
+	output = '../zenstack/zod'
 }
 
 generator client {

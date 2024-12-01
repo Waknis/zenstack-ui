@@ -1,4 +1,4 @@
-import { Button, Divider, Textarea } from '@mantine/core';
+import { Textarea } from '@mantine/core';
 import { createFileRoute } from '@tanstack/react-router';
 import { useRef } from 'react';
 

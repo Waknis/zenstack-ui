@@ -6,7 +6,7 @@ import ListSkeleton from '~client/form/lib/skeleton';
 import { trpc } from '~client/main';
 import { CustomRoomCreateSchema } from '~server/schemas';
 import { type RoomSchema } from '~zenstack/zod/models';
-import ZenstackList from '~zenstack-ui/list/list';
+import { ZenstackList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/rooms')({
 	component: RoomsLayout,
