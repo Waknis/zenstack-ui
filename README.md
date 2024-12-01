@@ -2,7 +2,7 @@
 
 Customizable react components for zenstack and prisma (forms/lists/etc.)
 
-This library is a work in progress, and may not be ready for production yet. Many new features are coming soon.
+This library is a work in progress, and may not be ready for production yet.
 
 Currently, you can use it to add form components that automatically generate based on your zmodel schema. With a single component, input fields that match the field types in your zmodel are generated with default values, validation rules, keyboard shortcuts, and more.
 
@@ -29,7 +29,7 @@ model Item {
 }
 ```
 
-This is all the code you need to generate the forms seen in the demo! Any change in the zmodel schema will automatically reflect in the UI.
+This is all the code you need to generate the forms seen in the demo! Any change in the zmodel schema will automatically reflect in the UI. There are many customization options as well, including creating form templates and custom elements. Read the docs to learn more.
 
 ```tsx
 // Create form
