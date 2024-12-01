@@ -581,6 +581,9 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	const handleChange = (event: any) => {
 		const fieldName = props.field.name;
 
+		// Call custom element's onChange if it exists
+		if (props.customElement?.props.onChange) props.customElement.props.onChange(event);
+
 		// Call original onChange
 		props.form.getInputProps(fieldName).onChange(event);
 
@@ -619,9 +622,10 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 
 		// Filter out props that are already defined in customElement
 		const finalProps = Object.fromEntries(
-			Object.entries(baseProps).filter(([key]) =>
-				props.customElement!.props[key] === undefined,
-			),
+			Object.entries(baseProps).filter(([key]) => {
+				if (key === 'onChange') return true; // Don't override onChange
+				return props.customElement!.props[key] === undefined;
+			}),
 		);
 		// For custom elements, we need to prioritize the loading placeholder
 		if (props.isLoadingInitialData) finalProps.placeholder = LOADING_PLACEHOLDER;
