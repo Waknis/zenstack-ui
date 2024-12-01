@@ -495,12 +495,23 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	if (zodFieldType === 'ZodEnum') {
 		// Enum type - Update attributes
 		fieldType = FieldType.Enum;
-		labelData = zodDef['values'].map((value: any) => {
-			return {
-				label: enumLabelTransformer ? enumLabelTransformer(value) : value,
-				value: value,
-			};
-		});
+
+		// Generate base enum values
+		let enumValues = zodDef['values'].map((value: any) => ({
+			label: enumLabelTransformer ? enumLabelTransformer(value) : value,
+			value: value,
+		}));
+
+		// Filter the enum values if a filter function exists
+		if (field.filter) {
+			const modelValues = props.form.getValues();
+			// Fix an issue where values are strings ('undefined') instead of undefined
+			Object.keys(modelValues).forEach(key => modelValues[key] === 'undefined' && (modelValues[key] = undefined));
+			// Filter the enum values
+			enumValues = enumValues.filter((enumItem: any) => field.filter!(modelValues, { value: enumItem.value }));
+		}
+
+		labelData = enumValues;
 	} else if (field.isForeignKey) {
 		// Reference type - Update attributes
 		fieldType = FieldType.ReferenceSingle;
@@ -526,9 +537,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 				// Fix an issue where values are strings ('undefined') instead of undefined
 				Object.keys(modelValues).forEach(key => modelValues[key] === 'undefined' && (modelValues[key] = undefined));
 				// Filter the data
-				filteredData = referenceFieldData.data.filter((referenceItem: any) =>
-					field.filter!(modelValues, referenceItem),
-				);
+				filteredData = referenceFieldData.data.filter((referenceItem: any) => field.filter!(modelValues, referenceItem));
 			}
 
 			// Generate label data
