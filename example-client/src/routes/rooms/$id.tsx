@@ -11,6 +11,8 @@ export const Route = createFileRoute('/rooms/$id')({
 	component: PeopleDetail,
 });
 
+const roomFields = meta.models.room.fields;
+
 function PeopleDetail() {
 	const params = Route.useParams() as { id: string };
 	const id = Number(params.id);
@@ -22,14 +24,15 @@ function PeopleDetail() {
 		<div>
 			<DetailHeader model="Room" id={id} route="/rooms" />
 			<MantineZenstackUpdateForm formRef={formRef} model="Room" id={id} route="/rooms/$id">
-				<div className="mt-4 flex flex-col gap-2">
-					<Divider />
-					<div data-placeholder-name={meta.models.room.fields.description.name} />
-					<Divider />
-				</div>
-				<div className="">
+				<div className="flex w-full gap-4">
+					{/* A placeholder example. This gets replaced by an input component */}
+					<div className="grow" data-placeholder-name={roomFields.description.name} />
+
+					{/* A custom element example. This will be directly used by the form */}
 					<Textarea
-						data-field-name={meta.models.room.fields.aiSummary.name}
+						className="grow"
+						autosize
+						data-field-name={roomFields.aiSummary.name}
 						label="AI Summary"
 						placeholder="AI Summary"
 					/>

@@ -360,6 +360,7 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 					key={fieldName}
 					field={field}
 					index={-1}
+					className={element.props.className}
 					{...props}
 				/>
 			);
@@ -451,6 +452,7 @@ interface ZenstackFormInputProps extends ZenstackBaseFormProps {
 	field: Field
 	index: number
 	customElement?: React.ReactElement
+	className?: string
 }
 const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 	const { metadata: originalMetadata, elementMap, hooks, enumLabelTransformer } = useZenstackUIProvider();
@@ -588,12 +590,16 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 
 	// If we have a custom element, use it instead of the element mapping
 	if (props.customElement) {
+		const originalClassName = props.customElement.props.className || '';
+		const dirtyClassName = isDirty ? 'dirty' : '';
+		const combinedClassName = `${originalClassName} ${dirtyClassName}`.trim();
+
 		return React.cloneElement(props.customElement, {
 			...props.form.getInputProps(fieldName),
 			onChange: handleChange,
 			required,
 			key: props.form.key(fieldName),
-			className: isDirty ? 'dirty' : '',
+			className: combinedClassName,
 			disabled: isDisabled,
 			placeholder: placeholder,
 		});
@@ -608,7 +614,7 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 			onChange={handleChange} // Override onChange with our wrapped version
 			label={label}
 			data={labelData}
-			className={isDirty ? 'dirty' : ''}
+			className={`${props.className || ''} ${isDirty ? 'dirty' : ''}`.trim()}
 			disabled={isDisabled}
 			data-autofocus={props.index === 0}
 		/>
