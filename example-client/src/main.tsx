@@ -1,28 +1,29 @@
 import '@mantine/core/styles.css';
 import '~client/index.css';
+import '~client/styles/button.css';
 import '~client/styles/input.css';
 import '~client/styles/modal.css';
 import '~client/styles/tooltip.css';
-import '~client/styles/button.css';
+import '~client/styles/form.css';
 
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
-import { httpLink, TRPCClientError } from '@trpc/client';
+import { httpLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { toast } from 'sonner';
 
-import { baseZenstackUIConfig } from '~client/form/form-config';
+import { zenstackUIConfig } from '~client/form/form-config';
 import { theme } from '~client/routes/-mantine-theme';
 import { routeTree } from '~client/routeTree.gen';
+import { queryClient } from '~client/utils/query-client';
 import type { AppRouter } from '~server/api';
 import { Provider as ZenStackHooksProvider } from '~zenstack/hooks';
-import { type ZenstackUIConfigType, ZenstackUIProvider } from '~zenstack-ui/utils/provider';
+import { ZenstackUIProvider } from '~zenstack-ui/utils/provider';
 
 // --------------------------------------------------------------------------------
 // TanStack Router Setup
@@ -71,53 +72,6 @@ if (import.meta.env.MODE === 'development') {
 const trpcLinks = [httpLink({ url: `${serverUrl}/trpc` })];
 export const trpc = createTRPCReact<AppRouter>();
 const trpcClient = trpc.createClient({ links: trpcLinks });
-
-// Query Client with UI notification logging
-export const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			retry: false,
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			gcTime: 1000 * 60 * 60 * 24, // 1 day
-		},
-	},
-	queryCache: new QueryCache({
-		onError: (error, query) => {
-			if (error instanceof TRPCClientError) {
-				console.error('trpc query error');
-				console.dir(error);
-				toast.error(`TRPC Server Error: ${error.message}`);
-			} else {
-				console.error('ZenStack query error');
-				// @ts-expect-error Need to find correct type for error
-				const message = error['info']['message'];
-				console.error('ZenStack Server Error:', message);
-				toast.error(`ZenStack Server Error: ${message}`);
-			}
-		},
-	}),
-	mutationCache: new MutationCache({
-		onError: (error, mutation) => {
-			if (error instanceof TRPCClientError) {
-				console.error('trpc mutation error');
-				console.error('TRPC Server Error:', error.message);
-				toast.error(`TRPC Server Error: ${error.message}`);
-			} else {
-				console.error('ZenStack mutation error');
-				// @ts-expect-error Need to find correct type for error
-				const message = error['info']['message'];
-				console.error('ZenStack Server Error:', message);
-				toast.error(`ZenStack Server Error: ${message}`);
-			}
-		},
-	}),
-});
-
-// ZenstackUIConfig with queryClient
-const zenstackUIConfig: ZenstackUIConfigType = {
-	...baseZenstackUIConfig,
-	queryClient,
-};
 
 // --------------------------------------------------------------------------------
 // Render

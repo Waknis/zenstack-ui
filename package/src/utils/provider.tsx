@@ -8,7 +8,7 @@ import { FieldType, Metadata, UseQueryHook } from '../metadata';
 // type Schema = z.ZodObject<any> | z.ZodEffects<any>;
 type Schema = z.ZodObject<any>;
 
-export type MapFieldTypeToElement = Partial<Record<FieldType, React.ElementType>>;
+export type MapFieldTypeToElement = Partial<Record<FieldType | string, React.ElementType>>;
 
 export interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	model: string
@@ -24,6 +24,9 @@ export interface ZenstackUIConfigType {
 	submitButtons: MapSubmitTypeToButton
 	hooks: Record<string, UseQueryHook<any> | any>
 	queryClient: QueryClient
+
+	/** Global className to be applied to all forms */
+	globalClassName?: string
 
 	/** Transform enum labels for display. For example, convert 'first_name' to 'First Name' */
 	enumLabelTransformer?: (label: string) => string

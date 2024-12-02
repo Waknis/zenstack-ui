@@ -31,6 +31,7 @@ export interface ZSFormOverrideProps {
 interface ZSSharedFormProps extends ZSFormOverrideProps {
 	model: string
 	children?: React.ReactNode
+	className?: string
 }
 
 interface ZSUpdateFormProps extends ZSSharedFormProps {
@@ -121,7 +122,7 @@ const focusOnPrevActiveElement = () => {
 // Update Form
 // --------------------------------------------------------------------------------
 export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
-	const { hooks, schemas, metadata: originalMetadata, queryClient } = useZenstackUIProvider();
+	const { hooks, schemas, metadata: originalMetadata, queryClient, globalClassName } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 
 	// Extract information
@@ -162,10 +163,10 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 	// Set initial values after data is fetched
 	useEffect(() => {
 		if (data) {
-			// Get default values, and copy over the new fetched data
+			// Get default values, and replace them with the newly fetched data
 			const defaultValues = createDefaultValues(fields);
 			for (const key in data) {
-				if (data[key]) defaultValues[key] = data[key];
+				if (data[key] !== undefined) defaultValues[key] = data[key];
 			}
 
 			form.setInitialValues(defaultValues);
@@ -197,6 +198,7 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 				);
 				// Update data
 				const cleanedData = cleanAndConnectData(dirtyValues, fields);
+
 				const result = await update.mutateAsync({
 					where: { [idField.name]: props.id },
 					data: cleanedData,
@@ -222,6 +224,7 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 
 	return (
 		<form
+			className={`${globalClassName || ''} ${props.className || ''}`.trim()}
 			onSubmit={form.onSubmit(handleUpdateSubmit)}
 			onKeyDown={getHotkeyHandler([
 				['meta+s', form.onSubmit(handleUpdateSubmit)],
@@ -239,7 +242,7 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 // Create Form
 // --------------------------------------------------------------------------------
 export const ZSCreateForm = (props: ZSCreateFormProps) => {
-	const { hooks, schemas, metadata: originalMetadata, queryClient } = useZenstackUIProvider();
+	const { hooks, schemas, metadata: originalMetadata, queryClient, globalClassName } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 
 	// Extract information
@@ -303,7 +306,10 @@ export const ZSCreateForm = (props: ZSCreateFormProps) => {
 	};
 
 	return (
-		<form onSubmit={form.onSubmit(handleCreateSubmit)}>
+		<form
+			className={`${globalClassName || ''} ${props.className || ''}`.trim()}
+			onSubmit={form.onSubmit(handleCreateSubmit)}
+		>
 			<ZSBaseForm model={props.model} form={form} schema={createSchema} type="create" isLoadingCreate={isLoadingCreate} metadataOverride={props.metadataOverride}>
 				{props.children}
 			</ZSBaseForm>
@@ -325,8 +331,30 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 
 		// First check if this element is a function component by checking if its type is a function
 		if (typeof element.type === 'function') {
+			// Handle ZSCustomField
+			if ((element.type as any).displayName === ZSCUSTOM_FIELD_DISPLAY_NAME) {
+				const fieldName = element.props.fieldName;
+				const field = fields[fieldName];
+				const customElement = React.Children.only(element.props.children);
+
+				if (!field) {
+					console.warn(`Field ${fieldName} not found in model ${props.model}`);
+					return element;
+				}
+
+				return (
+					<ZSFormInputInternal
+						key={fieldName}
+						field={field}
+						index={-1}
+						customElement={customElement}
+						{...props}
+					/>
+				);
+			}
+
 			// Check for ZenstackFormPlaceholder by display name
-			if ((element.type as any).displayName === ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME) {
+			if ((element.type as any).displayName === ZSFIELDSLOT_DISPLAY_NAME) {
 				const fieldName = element.props.fieldName;
 				const field = fields[fieldName];
 
@@ -348,33 +376,15 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 
 			// Handle other function components
 			try {
-				const renderedElement = element.type(element.props);
-				return processChildren(renderedElement);
+				if (typeof element.type === 'function') {
+					const renderedElement = (element.type as (props: any) => React.ReactNode)(element.props);
+					return processChildren(renderedElement);
+				}
+				return element;
 			} catch (error) {
 				console.error('Error processing component:', error);
 				return element;
 			}
-		}
-
-		// Handle data attributes
-		if (element.props['data-field-name']) {
-			const fieldName = element.props['data-field-name'];
-			const field = fields[fieldName];
-
-			if (!field) {
-				console.warn(`Field ${fieldName} not found in model ${props.model}`);
-				return element;
-			}
-
-			return (
-				<ZSFormInputInternal
-					key={fieldName}
-					field={field}
-					index={-1}
-					{...props}
-					customElement={element}
-				/>
-			);
 		}
 
 		// Recursively process children
@@ -395,24 +405,25 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 
 			// Handle function components by rendering them
 			if (typeof child.type === 'function') {
-				// Check for ZenstackFormPlaceholder by display name
-				if ((child.type as any).displayName === ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME
+				// Check for ZSCustomField
+				if ((child.type as any).displayName === ZSCUSTOM_FIELD_DISPLAY_NAME
+				  && child.props.fieldName === fieldName) {
+					return true;
+				}
+
+				// Check for ZenstackFormPlaceholder
+				if ((child.type as any).displayName === ZSFIELDSLOT_DISPLAY_NAME
 				  && child.props.fieldName === fieldName) {
 					return true;
 				}
 
 				try {
-					const renderedElement = child.type(child.props);
+					const renderedElement = (child.type as (props: any) => React.ReactNode)(child.props);
 					return hasCustomOrPlaceholder(fieldName, renderedElement);
 				} catch (error) {
 					console.error('Error processing component:', error);
 					return false;
 				}
-			}
-
-			// Check current element's data attributes
-			if (child.props['data-field-name'] === fieldName) {
-				return true;
 			}
 
 			// Recursively check children
@@ -630,6 +641,17 @@ const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
 		});
 	};
 
+	// Get form props based on field type
+	const getFormProps = () => {
+		if (fieldType === FieldType.Boolean) {
+			return {
+				...props.form.getInputProps(fieldName, { type: 'checkbox' }),
+				required: false,
+			};
+		}
+		return props.form.getInputProps(fieldName);
+	};
+
 	// If we have a custom element, use it instead of the element mapping
 	if (props.customElement) {
 		const originalClassName = props.customElement.props.className || '';
@@ -638,7 +660,7 @@ const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
 
 		// Create base props that we want to pass
 		const baseProps = {
-			...props.form.getInputProps(fieldName),
+			...getFormProps(), // Use getFormProps instead of direct getInputProps
 			'onChange': handleChange,
 			required,
 			'key': props.form.key(fieldName),
@@ -668,8 +690,8 @@ const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
 			placeholder={placeholder}
 			required={required}
 			key={props.form.key(fieldName)}
-			{...props.form.getInputProps(fieldName)}
-			onChange={handleChange} // Override onChange with our wrapped version
+			{...getFormProps()} // Use getFormProps instead of direct getInputProps
+			onChange={handleChange}
 			label={label}
 			data={labelData}
 			className={`${props.className || ''} ${isDirty ? 'dirty' : ''}`.trim()}
@@ -683,5 +705,19 @@ const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
 export const ZSFieldSlot = ({ fieldName, className, ...rest }: { fieldName: string, className?: string, [key: string]: any }) => {
 	return <div className={className} {...rest} />;
 };
-const ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME = 'ZenstackFormPlaceholder';
-ZSFieldSlot.displayName = ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME;
+const ZSFIELDSLOT_DISPLAY_NAME = 'ZenstackFormPlaceholder';
+ZSFieldSlot.displayName = ZSFIELDSLOT_DISPLAY_NAME;
+
+// Note: `fieldName` is used by `processChildren` and `hasCustomOrPlaceholder` to identify the custom field, but not inside the component itself
+/** A custom element that will be controlled by the form. You do not need to pass values or data to it, but you can if you want. */
+export const ZSCustomField = ({ fieldName, children }: { fieldName: string, children: React.ReactNode }) => {
+	// Ensure there's exactly one child
+	const childrenArray = React.Children.toArray(children);
+	if (childrenArray.length !== 1 || !isValidElement(childrenArray[0])) {
+		throw new Error('ZSCustomField must have exactly one child element');
+	}
+
+	return childrenArray[0];
+};
+const ZSCUSTOM_FIELD_DISPLAY_NAME = 'ZSCustomField';
+ZSCustomField.displayName = ZSCUSTOM_FIELD_DISPLAY_NAME;

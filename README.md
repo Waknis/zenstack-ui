@@ -29,7 +29,7 @@ model Item {
 }
 ```
 
-This is all the code you need to generate the forms seen in the demo! Any change in the zmodel schema will automatically reflect in the UI. There are many customization options as well, including creating form templates and custom elements. Read the docs to learn more.
+This is all the code you need to generate the forms seen in the demo! Any change in the zmodel schema will automatically reflect in the UI.
 
 ```tsx
 // Create form
@@ -39,4 +39,22 @@ This is all the code you need to generate the forms seen in the demo! Any change
 <ZSUpdateForm model={modelNames.item} id={0} />
 ```
 
-You can see the results in the demo!
+If you want to customize your forms, you can use slot placeholders or custom elements. This allows you to build complete templates with your own components. See the example below:
+```tsx
+<ZSUpdateForm model={modelNames.room} id={id}>
+	{/* A placeholder example. This gets replaced by an input component */}
+	<ZSFieldSlot className="grow" fieldName={roomFields.description} />
+
+	{/* A custom element example. This will be directly used by the form */}
+	<ZSCustomField fieldName={roomFields.aiSummary}>
+		<Textarea
+			className="grow"
+			autosize
+			label="AI Summary"
+			placeholder="AI Summary"
+		/>
+	</ZSCustomField>
+</ZSUpdateForm>
+```
+
+You can see the results in the demo! There are many customization options as well, read the docs to learn more.

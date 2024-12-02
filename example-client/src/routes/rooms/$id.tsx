@@ -5,7 +5,7 @@ import { useRef } from 'react';
 import { modelNames, typedModelFields } from '~client/form/form-config';
 import { DetailHeader } from '~client/form/lib/detail-header';
 import MZSUpdateForm from '~client/form/lib/mantine-update-form';
-import { ZSFieldSlot, type ZSFormRef } from '~zenstack-ui/index';
+import { ZSCustomField, ZSFieldSlot, type ZSFormRef } from '~zenstack-ui/index';
 
 export const Route = createFileRoute('/rooms/$id')({
 	component: PeopleDetail,
@@ -31,13 +31,14 @@ function PeopleDetail() {
 					{/* <ZSFieldSlot className="grow" fieldName={roomFields.description} /> */}
 
 					{/* A custom element example. This will be directly used by the form */}
-					{/* <Textarea
-						className="grow"
-						autosize
-						data-field-name={roomFields.aiSummary}
-						label="AI Summary"
-						placeholder="AI Summary"
-					/> */}
+					{/* <ZSCustomField fieldName={roomFields.aiSummary}>
+						<Textarea
+							className="grow"
+							autosize
+							label="AI Summary"
+							placeholder="AI Summary"
+						/>
+					</ZSCustomField> */}
 
 					<ZenstackTest />
 				</div>
@@ -50,14 +51,18 @@ function PeopleDetail() {
 const ZenstackTest = () => {
 	return (
 		<>
+			{/* A placeholder example. This gets replaced by an input component */}
 			<ZSFieldSlot className="grow" fieldName={roomFields.description} />
-			<Textarea
-				className="grow"
-				autosize
-				data-field-name={roomFields.aiSummary}
-				label="AI Summary"
-				placeholder="AI Summary"
-			/>
+
+			{/* A custom element example. This will be directly used by the form */}
+			<ZSCustomField fieldName={roomFields.aiSummary}>
+				<Textarea
+					className="grow"
+					autosize
+					label="AI Summary"
+					placeholder="AI Summary"
+				/>
+			</ZSCustomField>
 		</>
 	);
 };

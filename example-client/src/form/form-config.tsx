@@ -2,6 +2,7 @@ import { Checkbox, MultiSelect, NumberInput, TextInput } from '@mantine/core';
 import { Button } from '@mantine/core';
 
 import { SearchableSelect } from '~client/form/lib/searchable-select';
+import { queryClient } from '~client/utils/query-client';
 import * as hooks from '~zenstack/hooks';
 import metadata from '~zenstack/hooks/__model_meta';
 import * as schemas from '~zenstack/zod/models';
@@ -19,6 +20,9 @@ const mapFieldTypeToElement: MapFieldTypeToElement = {
 	[FieldType.Enum]: SearchableSelect,
 	[FieldType.ReferenceSingle]: SearchableSelect,
 	[FieldType.ReferenceMultiple]: MultiSelect,
+
+	// Example of adding custom types
+	MyCustomType: () => <div>My Custom Type</div>,
 };
 
 const CreateButton = ({ model, ...props }: SubmitButtonProps) => {
@@ -96,11 +100,13 @@ meta.models.item.fields.ownerName.filter = (itemFields: typeof meta.models.item.
 // --------------------------------------------------------------------------------
 // Export config
 // --------------------------------------------------------------------------------
-export const baseZenstackUIConfig = {
+export const zenstackUIConfig: ZenstackUIConfigType = {
 	hooks,
 	schemas,
 	metadata: meta,
 	elementMap: mapFieldTypeToElement,
 	submitButtons: submitButtonMap,
 	enumLabelTransformer: (label: string) => label.replace(/_/g, ' '),
+	globalClassName: 'flex flex-col gap-2',
+	queryClient,
 };
