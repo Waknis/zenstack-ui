@@ -38,7 +38,7 @@ model Person {
 model Item {
 	id        Int           @id @default(autoincrement())
 	name      String
-	shareable Boolean       @default(false)
+	shareable Boolean
 	category  ITEM_CATEGORY
 	room      Room          @relation(fields: [roomId], references: [id])
 	roomId    Int
@@ -47,13 +47,13 @@ model Item {
 }
 
 model Room {
-	id          Int      @id @default(autoincrement())
-	name        String
-	items       Item[]
-	people      Person[]
-	description String?
-	testDefaultValue String @default("Here's a default string for you.")
-	aiSummary   String
+	id               Int      @id @default(autoincrement())
+	name             String
+	items            Item[]
+	people           Person[]
+	description      String?
+	testDefaultValue String   @default("Here's a default string for you.")
+	aiSummary        String
 }
 
 enum ITEM_CATEGORY {
