@@ -619,8 +619,9 @@ const ZSFormInputInternal = React.memo((props: ZenstackFormInputProps) => {
 	}
 
 	if (!Element) {
-		console.error(`No element mapping found for field type: ${field.type}`);
-		return <div style={{ color: 'red' }} key={fieldName}>Error: No element mapping found for field type: {fieldType}</div>;
+		const errorString = `No element mapping found for field ${fieldName} with type: ${field.type}`;
+		console.error(errorString);
+		return <div style={{ color: 'red' }} key={fieldName}>{errorString}</div>;
 	}
 
 	let placeholder = field.placeholder;

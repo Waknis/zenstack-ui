@@ -11,7 +11,7 @@ export const Route = createFileRoute('/rooms/$id')({
 	component: PeopleDetail,
 });
 
-const roomFields = typedModelFields('room');
+const roomFields = typedModelFields('houseRoom');
 
 function PeopleDetail() {
 	const params = Route.useParams() as { id: string };
@@ -22,8 +22,8 @@ function PeopleDetail() {
 
 	return (
 		<div>
-			<DetailHeader model={modelNames.room} id={id} route="/rooms" />
-			<MZSUpdateForm formRef={formRef} model={modelNames.room} id={id} route="/rooms/$id">
+			<DetailHeader model={modelNames.houseRoom} id={id} route="/rooms" />
+			<MZSUpdateForm formRef={formRef} model={modelNames.houseRoom} id={id} route="/rooms/$id">
 				<Divider mt="lg" my="md" variant="dashed" />
 				<div className="flex w-full gap-4">
 

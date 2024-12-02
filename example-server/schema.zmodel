@@ -31,7 +31,7 @@ datasource db {
 model Person {
 	name   String @id
 	items  Item[]
-	room   Room   @relation(fields: [roomId], references: [id])
+	room   HouseRoom   @relation(fields: [roomId], references: [id])
 	roomId Int
 }
 
@@ -40,13 +40,13 @@ model Item {
 	name      String
 	shareable Boolean
 	category  ITEM_CATEGORY
-	room      Room          @relation(fields: [roomId], references: [id])
+	room      HouseRoom          @relation(fields: [roomId], references: [id])
 	roomId    Int
 	owner     Person        @relation(fields: [ownerName], references: [name])
 	ownerName String
 }
 
-model Room {
+model HouseRoom {
 	id               Int      @id @default(autoincrement())
 	name             String
 	items            Item[]

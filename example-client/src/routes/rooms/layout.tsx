@@ -5,7 +5,7 @@ import { ListHeader } from '~client/form/lib/list-header';
 import ListSkeleton from '~client/form/lib/skeleton';
 import { trpc } from '~client/main';
 import { CustomRoomCreateSchema } from '~server/schemas';
-import { type RoomSchema } from '~zenstack/zod/models';
+import { type HouseRoomSchema } from '~zenstack/zod/models';
 import { ZenstackList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/rooms')({
@@ -13,8 +13,8 @@ export const Route = createFileRoute('/rooms')({
 });
 
 // Override metadata to hide the aiSummary field
-const metadataOverride = JSON.parse(JSON.stringify(meta));
-metadataOverride.models.room.fields.aiSummary.hidden = true;
+const metadataOverride: typeof meta = JSON.parse(JSON.stringify(meta));
+metadataOverride.models.houseRoom.fields.aiSummary.hidden = true;
 
 // In this example, we omit a field for the create form UI
 // This shows how to delegate specific fields to custom mutations
@@ -29,9 +29,11 @@ function RoomsLayout() {
 		<div className="page">
 			{/* List View */}
 			<div className="left-list">
-				<ListHeader title="Rooms" model={modelNames.room} schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
-				<ZenstackList<typeof RoomSchema._type>
-					model={modelNames.room}
+
+				<ListHeader title="Rooms" model={modelNames.houseRoom} schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
+
+				<ZenstackList<typeof HouseRoomSchema._type>
+					model={modelNames.houseRoom}
 					skeleton={<ListSkeleton />}
 					render={room => (
 						<Link
