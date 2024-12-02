@@ -528,7 +528,26 @@ const ZSFormInputInternal = React.memo((props: ZenstackFormInputProps) => {
 	const metadata = props.metadataOverride || originalMetadata;
 
 	const fields = getModelFields(metadata, props.model);
-	const zodShape = ('shape' in props.schema ? props.schema.shape : {}) as Record<string, z.ZodTypeAny>;
+
+	// Get the underlying schema shape, handling both regular objects and effects
+	const zodShape = useMemo(() => {
+		const getSchemaShape = (schema: z.ZodTypeAny): Record<string, z.ZodTypeAny> => {
+			if ('shape' in schema) {
+				return schema.shape as Record<string, z.ZodTypeAny>;
+			}
+
+			// Handle effects by getting their inner type
+			if ('schema' in schema._def) {
+				return getSchemaShape(schema._def.schema);
+			}
+
+			console.error('Unable to extract shape from schema:', schema);
+			return {};
+		};
+
+		return getSchemaShape(props.schema);
+	}, [props.schema]);
+
 	const field = props.field;
 
 	// Get the hook function unconditionally
@@ -561,6 +580,8 @@ const ZSFormInputInternal = React.memo((props: ZenstackFormInputProps) => {
 		zodDef = zodDef['innerType']['_def'];
 		zodFieldType = zodDef['typeName'];
 	}
+
+	console.log(props.schema);
 
 	// Update attributes depending on field type
 	if (zodFieldType === 'ZodEnum') {
