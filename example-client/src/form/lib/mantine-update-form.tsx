@@ -1,14 +1,15 @@
 import { useNavigate } from '@tanstack/react-router';
 
 import type { RouteFullPaths } from '~client/routes/-sidebar';
-import { ZenstackUpdateForm } from '~zenstack-ui/form/form';
+import { ZSUpdateForm } from '~zenstack-ui/form/form';
 
-type MantineZenstackUpdateFormProps = React.ComponentProps<typeof ZenstackUpdateForm> & {
+// MZS stands for Mantine Zenstack
+type MZSUpdateFormProps = React.ComponentProps<typeof ZSUpdateForm> & {
 	route: RouteFullPaths
 	children?: React.ReactNode
 };
 
-const MantineZenstackUpdateForm = (props: MantineZenstackUpdateFormProps) => {
+const MZSUpdateForm = (props: MZSUpdateFormProps) => {
 	const navigate = useNavigate();
 
 	const handleIdChanged = (id: number | string) => {
@@ -16,10 +17,10 @@ const MantineZenstackUpdateForm = (props: MantineZenstackUpdateFormProps) => {
 	};
 
 	return (
-		<ZenstackUpdateForm {...props} onIdChanged={handleIdChanged} formRef={props.formRef}>
+		<ZSUpdateForm {...props} onIdChanged={handleIdChanged} formRef={props.formRef}>
 			{props.children}
-		</ZenstackUpdateForm>
+		</ZSUpdateForm>
 	);
 };
 
-export default MantineZenstackUpdateForm;
+export default MZSUpdateForm;

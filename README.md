@@ -33,10 +33,10 @@ This is all the code you need to generate the forms seen in the demo! Any change
 
 ```tsx
 // Create form
-<ZenstackCreateForm model={modelNames.item} />
+<ZSCreateForm model={modelNames.item} />
 
 // Update form (for example, you would pass an id from a page parameter)
-<ZenstackUpdateForm model={modelNames.item} id={0} />
+<ZSUpdateForm model={modelNames.item} id={0} />
 ```
 
 You can see the results in the demo!

@@ -16,32 +16,32 @@ import { getIdField, getModelFields } from '../utils/utils';
 const LOADING_PLACEHOLDER = 'Loading...';
 
 // Form ref type
-export interface ZenstackFormRef {
+export interface ZSFormRef {
 	form: ReturnType<typeof useForm>
 }
 
-export interface ZenstackFormOverrideProps {
+export interface ZSFormOverrideProps {
 	onSubmit?: (values: any) => void // Do custom action after submission completes
 	overrideSubmit?: (values: any) => Promise<void> // Override default submission behavior with custom server hook
 	schemaOverride?: ZodSchema
 	metadataOverride?: Metadata
-	formRef?: React.RefObject<ZenstackFormRef>
+	formRef?: React.RefObject<ZSFormRef>
 }
 
-interface ZenstackSharedFormProps extends ZenstackFormOverrideProps {
+interface ZSSharedFormProps extends ZSFormOverrideProps {
 	model: string
 	children?: React.ReactNode
 }
 
-interface ZenstackUpdateFormProps extends ZenstackSharedFormProps {
+interface ZSUpdateFormProps extends ZSSharedFormProps {
 	id: number | string
 	/** Called by the form when the id field is updated. Useful for updating the URL */
 	onIdChanged?: (id: number | string) => void
 }
 
-type ZenstackCreateFormProps = ZenstackSharedFormProps;
+type ZSCreateFormProps = ZSSharedFormProps;
 
-interface ZenstackBaseFormProps extends ZenstackSharedFormProps {
+interface ZSBaseFormProps extends ZSSharedFormProps {
 	form: ReturnType<typeof useForm>
 	schema: ZodSchema
 	type: 'create' | 'update'
@@ -120,7 +120,7 @@ const focusOnPrevActiveElement = () => {
 // --------------------------------------------------------------------------------
 // Update Form
 // --------------------------------------------------------------------------------
-export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
+export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 	const { hooks, schemas, metadata: originalMetadata, queryClient } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 
@@ -228,9 +228,9 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 				['mod+backspace', handleRevertShortcut],
 			])}
 		>
-			<ZenstackBaseForm model={props.model} form={form} schema={mainSchema} type="update" isLoadingInitialData={isLoadingInitialData} isLoadingUpdate={isLoadingUpdate} metadataOverride={props.metadataOverride}>
+			<ZSBaseForm model={props.model} form={form} schema={mainSchema} type="update" isLoadingInitialData={isLoadingInitialData} isLoadingUpdate={isLoadingUpdate} metadataOverride={props.metadataOverride}>
 				{props.children}
-			</ZenstackBaseForm>
+			</ZSBaseForm>
 		</form>
 	);
 };
@@ -238,7 +238,7 @@ export const ZenstackUpdateForm = (props: ZenstackUpdateFormProps) => {
 // --------------------------------------------------------------------------------
 // Create Form
 // --------------------------------------------------------------------------------
-export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
+export const ZSCreateForm = (props: ZSCreateFormProps) => {
 	const { hooks, schemas, metadata: originalMetadata, queryClient } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 
@@ -304,9 +304,9 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 
 	return (
 		<form onSubmit={form.onSubmit(handleCreateSubmit)}>
-			<ZenstackBaseForm model={props.model} form={form} schema={createSchema} type="create" isLoadingCreate={isLoadingCreate} metadataOverride={props.metadataOverride}>
+			<ZSBaseForm model={props.model} form={form} schema={createSchema} type="create" isLoadingCreate={isLoadingCreate} metadataOverride={props.metadataOverride}>
 				{props.children}
-			</ZenstackBaseForm>
+			</ZSBaseForm>
 		</form>
 	);
 };
@@ -314,7 +314,7 @@ export const ZenstackCreateForm = (props: ZenstackCreateFormProps) => {
 // --------------------------------------------------------------------------------
 // Base Form (shared between create/update forms)
 // --------------------------------------------------------------------------------
-const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
+const ZSBaseForm = (props: ZSBaseFormProps) => {
 	const { metadata: originalMetadata, submitButtons } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 	const fields = getModelFields(metadata, props.model);
@@ -336,7 +336,7 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 				}
 
 				return (
-					<ZenstackFormInputInternal
+					<ZSFormInputInternal
 						key={fieldName}
 						field={field}
 						index={-1}
@@ -367,7 +367,7 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 			}
 
 			return (
-				<ZenstackFormInputInternal
+				<ZSFormInputInternal
 					key={fieldName}
 					field={field}
 					index={-1}
@@ -431,7 +431,7 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 				if (hasCustomOrPlaceholder(field.name, props.children)) return null;
 
 				return (
-					<ZenstackFormInputInternal
+					<ZSFormInputInternal
 						key={field.name}
 						field={field}
 						index={index}
@@ -478,13 +478,13 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 	);
 };
 
-interface ZenstackFormInputProps extends ZenstackBaseFormProps {
+interface ZenstackFormInputProps extends ZSBaseFormProps {
 	field: Field
 	index: number
 	customElement?: React.ReactElement
 	className?: string
 }
-const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
+const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
 	const { metadata: originalMetadata, elementMap, hooks, enumLabelTransformer } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 
@@ -680,8 +680,8 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 };
 
 /** A placeholder component will be replaced by the actual input component in the form. */
-export const ZenstackFormPlaceholder = ({ fieldName, className, ...rest }: { fieldName: string, className?: string, [key: string]: any }) => {
+export const ZSFieldSlot = ({ fieldName, className, ...rest }: { fieldName: string, className?: string, [key: string]: any }) => {
 	return <div className={className} {...rest} />;
 };
 const ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME = 'ZenstackFormPlaceholder';
-ZenstackFormPlaceholder.displayName = ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME;
+ZSFieldSlot.displayName = ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME;
