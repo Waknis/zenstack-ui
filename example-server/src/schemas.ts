@@ -19,7 +19,7 @@ export const CustomRoomCreateSchema = HouseRoomCreateSchema
 // This preprocessor converts '' to null, so we don't get an error
 export const CustomRoomUpdateSchema = HouseRoomSchema
 	.extend({ description: emptyStringToNull() })
-	.refine(data => data.description!.length >= 1, {
+	.refine(data => !data.description || data.description.length >= 1, {
 		message: 'Description must be at least 1 character',
 		path: ['description'],
 	});

@@ -56,7 +56,7 @@ const ZenstackTest = () => {
 			{/* You can also pass custom class and event handlers if needed */}
 			<ZSFieldSlot
 				onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-					console.log('onChange', event.target.value);
+					console.log('custom onChange', event.target.value);
 				}}
 				className="grow"
 				fieldName={roomFields.description}

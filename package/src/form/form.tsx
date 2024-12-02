@@ -581,8 +581,6 @@ const ZSFormInputInternal = React.memo((props: ZenstackFormInputProps) => {
 		zodFieldType = zodDef['typeName'];
 	}
 
-	console.log(props.schema);
-
 	// Update attributes depending on field type
 	if (zodFieldType === 'ZodEnum') {
 		// Enum type - Update attributes

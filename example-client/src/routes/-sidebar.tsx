@@ -55,7 +55,6 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
 	const { toggleColorScheme } = useMantineColorScheme();
 	const sidebarPadding = 'px-2';
 	const { colorScheme } = useMantineColorScheme();
-	console.log(colorScheme);
 
 	if (!routeTree.children) return null;
 
