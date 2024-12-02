@@ -52,7 +52,14 @@ const ZenstackTest = () => {
 	return (
 		<>
 			{/* A placeholder example. This gets replaced by an input component */}
-			<ZSFieldSlot className="grow" fieldName={roomFields.description} />
+			{/* You can also pass custom class and event handlers if needed */}
+			<ZSFieldSlot
+				onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+					console.log('onChange', event.target.value);
+				}}
+				className="grow"
+				fieldName={roomFields.description}
+			/>
 
 			{/* A custom element example. This will be directly used by the form */}
 			<ZSCustomField fieldName={roomFields.aiSummary}>

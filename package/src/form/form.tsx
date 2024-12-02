@@ -380,6 +380,7 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 					return element;
 				}
 
+				// Replace customElement with ZSFormInputInternal
 				return (
 					<ZSFormInputInternal
 						key={fieldName}
@@ -400,12 +401,14 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 					return element;
 				}
 
+				// Replace ZSFieldSlot with ZSFormInputInternal
 				return (
 					<ZSFormInputInternal
 						key={fieldName}
 						field={field}
 						index={-1}
 						className={element.props.className}
+						onChange={element.props.onChange}
 						{...props}
 					/>
 				);
@@ -494,7 +497,7 @@ interface ZenstackFormInputProps extends ZSBaseFormProps {
 	field: Field
 	index: number
 	customElement?: React.ReactElement
-	className?: string
+	onChange?: (event: any) => void
 }
 
 // Change from regular component to memoized component
@@ -627,6 +630,8 @@ const ZSFormInputInternal = React.memo((props: ZenstackFormInputProps) => {
 
 		// Call custom element's onChange if it exists
 		if (props.customElement?.props.onChange) props.customElement.props.onChange(event);
+		// Call ZSFieldSlot's onChange if it exists
+		if (props.onChange) props.onChange(event);
 
 		// Call original onChange
 		props.form.getInputProps(fieldName).onChange(event);
