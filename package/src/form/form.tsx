@@ -154,8 +154,6 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 	const useUpdateHook = hooks[`useUpdate${props.model}`] as UseMutationHook<any>;
 	const update = useUpdateHook({ optimisticUpdate: true });
 
-	// console.log(createDefaultValues(fields, 'update'));
-
 	// Setup form
 	const form = useForm({
 		mode: 'controlled', // Controlled mode is required for adaptive filters
@@ -193,7 +191,15 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 	}, [data]);
 
 	// Handle update submit
-	const handleUpdateSubmit = async (values: any) => {
+	const handleUpdateSubmit = async (x: any) => {
+		// We parse the data ourselves so that any zod transformations can be applied (ex: empty strings to nulls)
+		const result = mainSchema.safeParse(x);
+		if (!result.success) {
+			console.error('Update data does not follow the schema:', result.error);
+			return;
+		}
+		const values = result.data;
+
 		setIsLoadingUpdate(true);
 
 		try {
@@ -201,7 +207,12 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 			const dirtyFields = form.getDirty();
 			const dirtyValues = Object.fromEntries(
 				Object.entries(values as Record<string, unknown>)
-					.filter(([key]) => dirtyFields[key]),
+					.filter(([key]) => dirtyFields[key])
+					.map(([key, value]) => {
+						// Convert empty strings to null for optional fields
+						if (fields[key]?.isOptional && value === '') return [key, null];
+						return [key, value];
+					}),
 			);
 			// Generate update payload
 			const cleanedData = cleanAndConnectData(dirtyValues, fields);
@@ -287,7 +298,15 @@ export const ZSCreateForm = (props: ZSCreateFormProps) => {
 	}));
 
 	// Handle create submit
-	const handleCreateSubmit = async (values: any) => {
+	const handleCreateSubmit = async (x: any) => {
+		// We parse the data ourselves so that any zod transformations can be applied (ex: empty strings to nulls)
+		const result = createSchema.safeParse(x);
+		if (!result.success) {
+			console.error('Create data does not follow the schema:', result.error);
+			return;
+		}
+		const values = result.data;
+
 		setIsLoadingCreate(true);
 		try {
 			const cleanedData = cleanAndConnectData(values, fields);

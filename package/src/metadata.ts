@@ -34,6 +34,7 @@ export interface Field {
 	isForeignKey?: boolean
 	relationField?: string
 	attributes?: Attribute[]
+	isOptional?: boolean
 
 	// custom fields for use by ZenstackForm
 	/** The label to display for the field */

@@ -29,9 +29,9 @@ datasource db {
 // ================================================================================
 
 model Person {
-	name   String @id
+	name   String    @id
 	items  Item[]
-	room   HouseRoom   @relation(fields: [roomId], references: [id])
+	room   HouseRoom @relation(fields: [roomId], references: [id])
 	roomId Int
 }
 
@@ -40,7 +40,7 @@ model Item {
 	name      String
 	shareable Boolean
 	category  ITEM_CATEGORY
-	room      HouseRoom          @relation(fields: [roomId], references: [id])
+	room      HouseRoom     @relation(fields: [roomId], references: [id])
 	roomId    Int
 	owner     Person        @relation(fields: [ownerName], references: [name])
 	ownerName String
@@ -51,7 +51,7 @@ model HouseRoom {
 	name             String
 	items            Item[]
 	people           Person[]
-	description      String?
+	description      String?  @length(min: 1)
 	testDefaultValue String   @default("Here's a default string for you.")
 	aiSummary        String
 }
