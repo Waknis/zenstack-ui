@@ -1,5 +1,5 @@
 import { Checkbox, Combobox, ScrollArea, Textarea } from '@mantine/core';
-import { Button, Modal, Select, TextInput, Tooltip } from '@mantine/core';
+import { Button, Modal, Select, Tooltip } from '@mantine/core';
 import { createTheme } from '@mantine/core';
 
 // Custom animations
@@ -12,6 +12,7 @@ const selectDropdownTransition = {
 
 // Theme config
 export const theme = createTheme({
+	cursorType: 'pointer', // adds pointer cursor for checkbox
 	focusClassName: 'focus-auto',
 	components: {
 		Button: Button.extend({

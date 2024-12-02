@@ -5,7 +5,7 @@
 import { useForm } from '@mantine/form';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { cloneElement, isValidElement, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { cloneElement, isValidElement, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import React from 'react';
 import { z, ZodSchema } from 'zod';
 
@@ -328,21 +328,51 @@ export const ZSCreateForm = (props: ZSCreateFormProps) => {
 // --------------------------------------------------------------------------------
 // Base Form (shared between create/update forms)
 // --------------------------------------------------------------------------------
+
 const ZSBaseForm = (props: ZSBaseFormProps) => {
 	const { metadata: originalMetadata, submitButtons } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 	const fields = getModelFields(metadata, props.model);
 
-	// Helper function to recursively process children
-	const processChildren = (element: React.ReactNode): React.ReactNode => {
+	// Memoize fields object
+	const memoizedFields = useMemo(() => fields, [fields]);
+
+	// Memoize the check for custom/placeholder fields
+	const hasCustomOrPlaceholder = useCallback((fieldName: string, children: React.ReactNode): boolean => {
+		return React.Children.toArray(children).some((child) => {
+			if (!isValidElement(child)) return false;
+
+			if (typeof child.type === 'function') {
+				const displayName = (child.type as any).displayName;
+				if (displayName === ZSCUSTOM_FIELD_DISPLAY_NAME && child.props.fieldName === fieldName) {
+					return true;
+				}
+				if (displayName === ZSFIELDSLOT_DISPLAY_NAME && child.props.fieldName === fieldName) {
+					return true;
+				}
+
+				try {
+					const renderedElement = (child.type as (props: any) => React.ReactNode)(child.props);
+					return hasCustomOrPlaceholder(fieldName, renderedElement);
+				} catch (error) {
+					return false;
+				}
+			}
+
+			return child.props.children ? hasCustomOrPlaceholder(fieldName, child.props.children) : false;
+		});
+	}, []);
+
+	// Memoize the processChildren function
+	const processChildren = useCallback((element: React.ReactNode): React.ReactNode => {
 		if (!isValidElement(element)) return element;
 
-		// First check if this element is a function component by checking if its type is a function
 		if (typeof element.type === 'function') {
-			// Handle ZSCustomField
-			if ((element.type as any).displayName === ZSCUSTOM_FIELD_DISPLAY_NAME) {
+			const displayName = (element.type as any).displayName;
+
+			if (displayName === ZSCUSTOM_FIELD_DISPLAY_NAME) {
 				const fieldName = element.props.fieldName;
-				const field = fields[fieldName];
+				const field = memoizedFields[fieldName];
 				const customElement = React.Children.only(element.props.children);
 
 				if (!field) {
@@ -361,10 +391,9 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 				);
 			}
 
-			// Check for ZenstackFormPlaceholder by display name
-			if ((element.type as any).displayName === ZSFIELDSLOT_DISPLAY_NAME) {
+			if (displayName === ZSFIELDSLOT_DISPLAY_NAME) {
 				const fieldName = element.props.fieldName;
-				const field = fields[fieldName];
+				const field = memoizedFields[fieldName];
 
 				if (!field) {
 					console.warn(`Field ${fieldName} not found in model ${props.model}`);
@@ -382,20 +411,14 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 				);
 			}
 
-			// Handle other function components
 			try {
-				if (typeof element.type === 'function') {
-					const renderedElement = (element.type as (props: any) => React.ReactNode)(element.props);
-					return processChildren(renderedElement);
-				}
-				return element;
+				const renderedElement = (element.type as (props: any) => React.ReactNode)(element.props);
+				return processChildren(renderedElement);
 			} catch (error) {
-				console.error('Error processing component:', error);
 				return element;
 			}
 		}
 
-		// Recursively process children
 		if (element.props.children) {
 			return cloneElement(element, {
 				...element.props,
@@ -404,66 +427,31 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 		}
 
 		return element;
-	};
+	}, [memoizedFields, props]);
 
-	// Helper to recursively check for custom elements or placeholders
-	const hasCustomOrPlaceholder = (fieldName: string, children: React.ReactNode): boolean => {
-		return React.Children.toArray(children).some((child) => {
-			if (!isValidElement(child)) return false;
+	// Memoize error checking
+	const hasErrors = useMemo(() => Object.keys(props.form.errors).length > 0, [props.form.errors]);
 
-			// Handle function components by rendering them
-			if (typeof child.type === 'function') {
-				// Check for ZSCustomField
-				if ((child.type as any).displayName === ZSCUSTOM_FIELD_DISPLAY_NAME
-				  && child.props.fieldName === fieldName) {
-					return true;
-				}
-
-				// Check for ZenstackFormPlaceholder
-				if ((child.type as any).displayName === ZSFIELDSLOT_DISPLAY_NAME
-				  && child.props.fieldName === fieldName) {
-					return true;
-				}
-
-				try {
-					const renderedElement = (child.type as (props: any) => React.ReactNode)(child.props);
-					return hasCustomOrPlaceholder(fieldName, renderedElement);
-				} catch (error) {
-					console.error('Error processing component:', error);
-					return false;
-				}
-			}
-
-			// Recursively check children
-			if (child.props.children) {
-				return hasCustomOrPlaceholder(fieldName, child.props.children);
-			}
-
-			return false;
-		});
-	};
+	// Memoize dirty state for update button
+	const isDirty = useMemo(() => {
+		return props.type === 'update' && Object.values(props.form.getDirty()).some(isDirty => isDirty);
+	}, [props.type, props.form.getDirty()]);
 
 	return (
 		<>
-			{/* Render default form fields that don't have custom elements or placeholders */}
-			{Object.values(fields).map((field, index) => {
-				if (hasCustomOrPlaceholder(field.name, props.children)) return null;
+			<AutomaticFormFields
+				fields={memoizedFields}
+				hasCustomOrPlaceholder={hasCustomOrPlaceholder}
+				{...props}
+			>
+				{props.children}
+			</AutomaticFormFields>
 
-				return (
-					<ZSFormInputInternal
-						key={field.name}
-						field={field}
-						index={index}
-						{...props}
-					/>
-				);
-			})}
+			<UserDefinedFields processChildren={processChildren}>
+				{props.children}
+			</UserDefinedFields>
 
-			{/* Render custom elements and placeholders */}
-			{React.Children.map(props.children, processChildren)}
-
-			{/* Existing error and submit button rendering */}
-			{Object.keys(props.form.errors).length > 0 && (
+			{hasErrors && (
 				<div style={{ flexShrink: 1 }}>
 					<p
 						style={{
@@ -489,7 +477,7 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 				<submitButtons.update
 					model={props.model}
 					type="submit"
-					disabled={!Object.values(props.form.getDirty()).some(isDirty => isDirty)}
+					disabled={!isDirty}
 					loading={props.isLoadingUpdate}
 				/>
 			)}
@@ -497,13 +485,20 @@ const ZSBaseForm = (props: ZSBaseFormProps) => {
 	);
 };
 
+// --------------------------------------------------------------------------------
+// Form component that generates the matching form input component
+// Internal use only
+// --------------------------------------------------------------------------------
+
 interface ZenstackFormInputProps extends ZSBaseFormProps {
 	field: Field
 	index: number
 	customElement?: React.ReactElement
 	className?: string
 }
-const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
+
+// Change from regular component to memoized component
+const ZSFormInputInternal = React.memo((props: ZenstackFormInputProps) => {
 	const { metadata: originalMetadata, elementMap, hooks, enumLabelTransformer } = useZenstackUIProvider();
 	const metadata = props.metadataOverride || originalMetadata;
 
@@ -709,7 +704,13 @@ const ZSFormInputInternal = (props: ZenstackFormInputProps) => {
 			data-autofocus={props.index === 0}
 		/>
 	);
-};
+});
+ZSFormInputInternal.displayName = 'ZSFormInputInternal';
+
+// --------------------------------------------------------------------------------
+// Form customization components
+// Exported for external use
+// --------------------------------------------------------------------------------
 
 /** A placeholder component will be replaced by the actual input component in the form. */
 export const ZSFieldSlot = ({ fieldName, className, ...rest }: { fieldName: string, className?: string, [key: string]: any }) => {
@@ -731,3 +732,45 @@ export const ZSCustomField = ({ fieldName, children }: { fieldName: string, chil
 };
 const ZSCUSTOM_FIELD_DISPLAY_NAME = 'ZSCustomField';
 ZSCustomField.displayName = ZSCUSTOM_FIELD_DISPLAY_NAME;
+
+// --------------------------------------------------------------------------------
+// Memoized components
+// Results of automatic fields and custom fields are memoized to avoid re-renders on every form update
+// Internal use only
+// --------------------------------------------------------------------------------
+
+// Rename to better describe the purpose
+type AutomaticFormFieldsProps = {
+	fields: Record<string, Field>
+	hasCustomOrPlaceholder: (fieldName: string, children: React.ReactNode) => boolean
+	children: React.ReactNode
+} & Omit<ZenstackFormInputProps, 'field' | 'index' | 'customElement' | 'className'>;
+
+const AutomaticFormFields = React.memo(({ fields, hasCustomOrPlaceholder, children, ...props }: AutomaticFormFieldsProps) => {
+	return (
+		<>
+			{Object.values(fields).map((field, index) => {
+				if (hasCustomOrPlaceholder(field.name, children)) return null;
+				return (
+					<ZSFormInputInternal
+						key={field.name}
+						field={field}
+						index={index}
+						{...props}
+					/>
+				);
+			})}
+		</>
+	);
+});
+AutomaticFormFields.displayName = 'AutomaticFormFields';
+
+interface UserDefinedFieldsProps {
+	children: React.ReactNode
+	processChildren: (element: React.ReactNode) => React.ReactNode
+}
+
+const UserDefinedFields = React.memo(({ children, processChildren }: UserDefinedFieldsProps) => {
+	return <>{React.Children.map(children, processChildren)}</>;
+});
+UserDefinedFields.displayName = 'UserDefinedFields';
