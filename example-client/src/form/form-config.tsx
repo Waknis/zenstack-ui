@@ -8,6 +8,9 @@ import * as schemas from '~zenstack/zod/models';
 import { type Field, FieldType } from '~zenstack-ui/metadata';
 import type { MapFieldTypeToElement, MapSubmitTypeToButton, SubmitButtonProps, ZenstackUIConfigType } from '~zenstack-ui/utils/provider';
 
+// --------------------------------------------------------------------------------
+// Form Config - Element Mapping
+// --------------------------------------------------------------------------------
 const mapFieldTypeToElement: MapFieldTypeToElement = {
 	[FieldType.Boolean]: Checkbox,
 	[FieldType.String]: TextInput,
@@ -39,6 +42,26 @@ const submitButtonMap: MapSubmitTypeToButton = {
 	update: UpdateButton,
 };
 
+// --------------------------------------------------------------------------------
+// Extract model names from metadata
+// --------------------------------------------------------------------------------
+type ModelNames = {
+	[K in keyof typeof metadata['models']]: typeof metadata['models'][K]['name']
+};
+/** List of all model names */
+export const modelNames = Object.fromEntries(
+	Object.entries(metadata.models).map(([key, model]) => [key, model.name]),
+) as ModelNames;
+
+export const typedModelFields = <T extends keyof typeof meta.models>(modelName: T) => {
+	return Object.fromEntries(
+		Object.entries(meta.models[modelName].fields).map(([key, field]) => [key, field.name]),
+	) as Record<keyof typeof meta.models[T]['fields'], string>;
+};
+
+// --------------------------------------------------------------------------------
+// Enhanced metadata
+// --------------------------------------------------------------------------------
 /** Enhance original zenstack metadata with custom fields for ZenstackForm */
 type EnhancedMetadata<T> = T & {
 	models: {
@@ -50,7 +73,9 @@ type EnhancedMetadata<T> = T & {
 	}
 };
 
+// --------------------------------------------------------------------------------
 // Customize metadata
+// --------------------------------------------------------------------------------
 export const meta = metadata as EnhancedMetadata<typeof metadata>;
 meta.models.item.fields.id.hidden = true;
 meta.models.room.fields.id.hidden = true;
@@ -68,6 +93,9 @@ meta.models.item.fields.ownerName.filter = (itemFields: typeof meta.models.item.
 	return ownerFields.roomId === itemFields.roomId;
 };
 
+// --------------------------------------------------------------------------------
+// Export config
+// --------------------------------------------------------------------------------
 export const baseZenstackUIConfig = {
 	hooks,
 	schemas,

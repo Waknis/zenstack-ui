@@ -1,12 +1,15 @@
 import { Accordion } from '@mantine/core';
 import { createFileRoute } from '@tanstack/react-router';
 
+import { modelNames } from '~client/form/form-config';
 import { DetailHeader } from '~client/form/lib/detail-header';
 import MantineZenstackUpdateForm from '~client/form/lib/mantine-update-form';
 
 export const Route = createFileRoute('/items/$id')({
 	component: ItemsDetail,
 });
+
+console.log(modelNames.item);
 
 function ItemsDetail() {
 	const params = Route.useParams() as { id: string };
@@ -15,8 +18,8 @@ function ItemsDetail() {
 	return (
 		<div className="form-container">
 			<div>
-				<DetailHeader model="Item" id={id} route="/items" />
-				<MantineZenstackUpdateForm model="Item" id={id} route="/items/$id" />
+				<DetailHeader model={modelNames.item} id={id} route="/items" />
+				<MantineZenstackUpdateForm model={modelNames.item} id={id} route="/items/$id" />
 			</div>
 
 			<ItemsDetailCode />

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
 
-import { meta } from '~client/form/form-config';
+import { meta, modelNames } from '~client/form/form-config';
 import { ListHeader } from '~client/form/lib/list-header';
 import ListSkeleton from '~client/form/lib/skeleton';
 import { trpc } from '~client/main';
@@ -29,9 +29,9 @@ function RoomsLayout() {
 		<div className="page">
 			{/* List View */}
 			<div className="left-list">
-				<ListHeader title="Rooms" model="Room" schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
+				<ListHeader title="Rooms" model={modelNames.room} schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
 				<ZenstackList<typeof RoomSchema._type>
-					model="Room"
+					model={modelNames.room}
 					skeleton={<ListSkeleton />}
 					render={room => (
 						<Link

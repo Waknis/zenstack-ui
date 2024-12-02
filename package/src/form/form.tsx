@@ -323,7 +323,40 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 	const processChildren = (element: React.ReactNode): React.ReactNode => {
 		if (!isValidElement(element)) return element;
 
-		// Handle custom elements with data-field-name
+		// First check if this element is a function component by checking if its type is a function
+		if (typeof element.type === 'function') {
+			// Check for ZenstackFormPlaceholder by display name
+			if ((element.type as any).displayName === ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME) {
+				const fieldName = element.props.fieldName;
+				const field = fields[fieldName];
+
+				if (!field) {
+					console.warn(`Field ${fieldName} not found in model ${props.model}`);
+					return element;
+				}
+
+				return (
+					<ZenstackFormInputInternal
+						key={fieldName}
+						field={field}
+						index={-1}
+						className={element.props.className}
+						{...props}
+					/>
+				);
+			}
+
+			// Handle other function components
+			try {
+				const renderedElement = element.type(element.props);
+				return processChildren(renderedElement);
+			} catch (error) {
+				console.error('Error processing component:', error);
+				return element;
+			}
+		}
+
+		// Handle data attributes
 		if (element.props['data-field-name']) {
 			const fieldName = element.props['data-field-name'];
 			const field = fields[fieldName];
@@ -344,61 +377,58 @@ const ZenstackBaseForm = (props: ZenstackBaseFormProps) => {
 			);
 		}
 
-		// Handle placeholder elements (data-placeholder-name)
-		if (element.props['data-placeholder-name']) {
-			const fieldName = element.props['data-placeholder-name'];
-			console.log('found placeholder', fieldName);
-			const field = fields[fieldName];
-
-			if (!field) {
-				console.warn(`Field ${fieldName} not found in model ${props.model}`);
-				return element;
-			}
-
-			return (
-				<ZenstackFormInputInternal
-					key={fieldName}
-					field={field}
-					index={-1}
-					className={element.props.className}
-					{...props}
-				/>
-			);
-		}
-
-		// If element has children, clone it and process its children
+		// Recursively process children
 		if (element.props.children) {
 			return cloneElement(element, {
 				...element.props,
-				children: React.Children.map(element.props.children, processChildren),
+				children: React.Children.map(element.props.children, child => processChildren(child)),
 			});
 		}
 
 		return element;
 	};
 
-	// Helper to check if a field has either a custom element or placeholder
-	const hasCustomOrPlaceholder = (fieldName: string) => {
-		return React.Children.toArray(props.children).some(
-			child => isValidElement(child) && (
-				child.props['data-field-name'] === fieldName
-				|| child.props['data-placeholder-name'] === fieldName
-				// Also check nested children
-				|| (child.props.children && React.Children.toArray(child.props.children).some(
-					nestedChild => isValidElement(nestedChild) && (
-						nestedChild.props['data-field-name'] === fieldName
-						|| nestedChild.props['data-placeholder-name'] === fieldName
-					),
-				))
-			),
-		);
+	// Helper to recursively check for custom elements or placeholders
+	const hasCustomOrPlaceholder = (fieldName: string, children: React.ReactNode): boolean => {
+		return React.Children.toArray(children).some((child) => {
+			if (!isValidElement(child)) return false;
+
+			// Handle function components by rendering them
+			if (typeof child.type === 'function') {
+				// Check for ZenstackFormPlaceholder by display name
+				if ((child.type as any).displayName === ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME
+				  && child.props.fieldName === fieldName) {
+					return true;
+				}
+
+				try {
+					const renderedElement = child.type(child.props);
+					return hasCustomOrPlaceholder(fieldName, renderedElement);
+				} catch (error) {
+					console.error('Error processing component:', error);
+					return false;
+				}
+			}
+
+			// Check current element's data attributes
+			if (child.props['data-field-name'] === fieldName) {
+				return true;
+			}
+
+			// Recursively check children
+			if (child.props.children) {
+				return hasCustomOrPlaceholder(fieldName, child.props.children);
+			}
+
+			return false;
+		});
 	};
 
 	return (
 		<>
 			{/* Render default form fields that don't have custom elements or placeholders */}
 			{Object.values(fields).map((field, index) => {
-				if (hasCustomOrPlaceholder(field.name)) return null;
+				if (hasCustomOrPlaceholder(field.name, props.children)) return null;
 
 				return (
 					<ZenstackFormInputInternal
@@ -648,3 +678,10 @@ const ZenstackFormInputInternal = (props: ZenstackFormInputProps) => {
 		/>
 	);
 };
+
+/** A placeholder component will be replaced by the actual input component in the form. */
+export const ZenstackFormPlaceholder = ({ fieldName, className, ...rest }: { fieldName: string, className?: string, [key: string]: any }) => {
+	return <div className={className} {...rest} />;
+};
+const ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME = 'ZenstackFormPlaceholder';
+ZenstackFormPlaceholder.displayName = ZENSTACK_FORM_PLACEHOLDER_DISPLAY_NAME;
