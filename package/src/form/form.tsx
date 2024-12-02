@@ -195,10 +195,24 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 	// Handle update submit
 	const handleUpdateSubmit = async (values: any) => {
 		setIsLoadingUpdate(true);
+
 		try {
+			// Only send dirty fields for the update query
+			const dirtyFields = form.getDirty();
+			const dirtyValues = Object.fromEntries(
+				Object.entries(values as Record<string, unknown>)
+					.filter(([key]) => dirtyFields[key]),
+			);
+			// Generate update payload
+			const cleanedData = cleanAndConnectData(dirtyValues, fields);
+			const updatePayload = {
+				where: { [idField.name]: props.id },
+				data: cleanedData,
+			};
+
 			if (props.overrideSubmit) {
-				await props.overrideSubmit(values);
-				props.onSubmit?.(values);
+				await props.overrideSubmit(updatePayload);
+				props.onSubmit?.(updatePayload);
 				// Invalidate all queries for this model
 				queryClient.invalidateQueries({
 					predicate: (query) => {
@@ -207,24 +221,12 @@ export const ZSUpdateForm = (props: ZSUpdateFormProps) => {
 					},
 				});
 			} else {
-				// Only send dirty fields for the update query
-				const dirtyFields = form.getDirty();
-				const dirtyValues = Object.fromEntries(
-					Object.entries(values as Record<string, unknown>)
-						.filter(([key]) => dirtyFields[key]),
-				);
-				// Update data
-				const cleanedData = cleanAndConnectData(dirtyValues, fields);
-
-				const result = await update.mutateAsync({
-					where: { [idField.name]: props.id },
-					data: cleanedData,
-				});
-
-				// Check if ID field was updated and trigger callbacks
-				if (dirtyFields[idField.name]) props.onIdChanged?.(result[idField.name]);
-				props.onSubmit?.(cleanedData);
+				await update.mutateAsync(updatePayload);
 			}
+
+			// Check if ID field was updated and trigger callbacks
+			if (dirtyFields[idField.name]) props.onIdChanged?.(values[idField.name]);
+			props.onSubmit?.(cleanedData);
 		} catch (error) {
 			console.error('Update failed:', error);
 		} finally {
@@ -288,9 +290,13 @@ export const ZSCreateForm = (props: ZSCreateFormProps) => {
 	const handleCreateSubmit = async (values: any) => {
 		setIsLoadingCreate(true);
 		try {
+			const cleanedData = cleanAndConnectData(values, fields);
+			const createPayload = { data: cleanedData };
+
 			if (props.overrideSubmit) {
-				await props.overrideSubmit(values);
-				props.onSubmit?.(values);
+				// For overrideSubmit, we omit the data key to keep it simpler
+				await props.overrideSubmit(cleanedData);
+				props.onSubmit?.(cleanedData);
 
 				// Invalidate all queries for this model
 				queryClient.invalidateQueries({
@@ -300,11 +306,8 @@ export const ZSCreateForm = (props: ZSCreateFormProps) => {
 					},
 				});
 			} else {
-				const cleanedData = cleanAndConnectData(values, fields);
-				await create.mutateAsync({
-					data: cleanedData,
-				});
-				props.onSubmit?.(cleanedData);
+				await create.mutateAsync(createPayload);
+				props.onSubmit?.(createPayload);
 			}
 		} catch (error) {
 			console.error('Create failed:', error);

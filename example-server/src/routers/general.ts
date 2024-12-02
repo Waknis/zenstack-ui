@@ -1,8 +1,5 @@
-import { z } from 'zod';
-
 import { CustomRoomCreateSchema } from '~server/schemas';
 import { p, t } from '~server/trpc';
-import { RoomCreateSchema } from '~zenstack/zod/models';
 
 export const generalRouter = t.router({
 	createRoom: p
