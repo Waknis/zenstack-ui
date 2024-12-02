@@ -9,19 +9,19 @@
 		"deploy": "vite build && bun wrangler pages deploy"
 	},
 	"dependencies": {
-		"@mantine/core": "^7.14.0",
-		"@mantine/form": "^7.14.0",
-		"@mantine/hooks": "^7.14.0",
-		"@mantine/modals": "^7.14.0",
-		"@tanstack/react-query": "^5.59.20",
-		"@tanstack/react-query-devtools": "^5.59.20",
-		"@tanstack/react-router": "^1.79.0",
-		"@tanstack/router-devtools": "^1.79.0",
-		"@tanstack/router-plugin": "^1.79.0",
+		"@mantine/core": "^7.14.3",
+		"@mantine/form": "^7.14.3",
+		"@mantine/hooks": "^7.14.3",
+		"@mantine/modals": "^7.14.3",
+		"@tanstack/react-query": "^5.62.1",
+		"@tanstack/react-query-devtools": "^5.62.1",
+		"@tanstack/react-router": "^1.85.2",
+		"@tanstack/router-devtools": "^1.85.2",
+		"@tanstack/router-plugin": "^1.85.2",
 		"@trpc/client": "^11.0.0-rc.630",
 		"@trpc/react-query": "^11.0.0-rc.630",
-		"@types/node": "^22.9.0",
-		"@zenstackhq/tanstack-query": "^2.8.1",
+		"@types/node": "^22.10.1",
+		"@zenstackhq/tanstack-query": "^2.9.4",
 		"mantine-form-zod-resolver": "^1.1.0",
 		"postcss-preset-mantine": "^1.17.0",
 		"postcss-simple-vars": "^7.0.1",
@@ -29,7 +29,7 @@
 		"react-dom": "^18.3.1",
 		"react-icons": "^5.3.0",
 		"sonner": "^1.7.0",
-		"tailwind-merge": "^2.5.4",
+		"tailwind-merge": "^2.5.5",
 		"tailwindcss-animate": "^1.0.7",
 		"zenstack-ui": "workspace:*",
 		"zod": "^3.23.8"
@@ -37,11 +37,11 @@
 	"devDependencies": {
 		"@types/react": "^18.3.12",
 		"@types/react-dom": "^18.3.1",
-		"@vitejs/plugin-react-swc": "^3.7.1",
+		"@vitejs/plugin-react-swc": "^3.7.2",
 		"autoprefixer": "^10.4.20",
-		"postcss": "^8.4.47",
-		"tailwindcss": "^3.4.14",
-		"vite": "^5.4.10",
-		"vite-tsconfig-paths": "^5.1.0"
+		"postcss": "^8.4.49",
+		"tailwindcss": "^3.4.15",
+		"vite": "^6.0.2",
+		"vite-tsconfig-paths": "^5.1.3"
 	}
 }

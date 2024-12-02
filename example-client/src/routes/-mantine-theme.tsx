@@ -34,7 +34,7 @@ export const theme = createTheme({
 		}),
 		Combobox: Combobox.extend({
 			defaultProps: {
-				offset: 6,
+				offset: 4,
 				shadow: 'md',
 			},
 		}),

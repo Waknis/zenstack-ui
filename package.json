@@ -7,13 +7,14 @@
 		"package"
 	],
 	"scripts": {
+		"validate-env": "bun run example-server/src/env.ts",
 		"dev": "bun run --filter '*' dev",
 		"deploy": "bun run --filter '*' deploy",
-		"dev:client": "cd example-client && bun run dev",
-		"dev:server": "cd example-server && bun run dev",
+		"dev:client": "bun run validate-env && cd example-client && bun run dev",
+		"dev:server": "bun run validate-env && cd example-server && bun run dev",
 		"deploy:client": "bun run --filter 'example-client' deploy",
 		"deploy:server": "bun run --filter 'example-server' deploy",
-		"sync-env": "doppler -p zenstack-ui-demo -c dev secrets download --no-file --format env | tee .env example-client/.dev.vars example-server/.dev.vars > /dev/null",
+		"sync-env": "doppler -p zenstack-ui-demo -c dev secrets download --no-file --format env | tee example-client/.dev.vars example-server/.dev.vars > /dev/null",
 		"push-env-to-workers": "cd example-server && doppler secrets --project zenstack-ui-demo --config dev --json | jq -c 'with_entries(.value = .value.computed)' | wrangler secret bulk --name zenstack-ui-demo-server",
 		"db:push": "bun run db:gen && bunx prisma db push --schema=./example-server/prisma/schema.prisma",
 		"db:gen": "bunx zenstack generate --schema=./example-server/schema.zmodel --no-compile --output ./zenstack && bunx prisma generate --schema=./example-server/prisma/schema.prisma",
@@ -32,10 +33,10 @@
 		"eslint-plugin-react-hooks": "^4.6.2",
 		"eslint-plugin-simple-import-sort": "^12.1.1",
 		"eslint-plugin-tailwindcss": "^3.17.5",
-		"globals": "^15.12.0",
-		"typescript": "^5.6.3",
+		"globals": "^15.13.0",
+		"typescript": "^5.7.2",
 		"typescript-eslint": "^8.13.0",
-		"wrangler": "^3.86.1"
+		"wrangler": "^3.91.0"
 	},
 	"trustedDependencies": [
 		"@prisma/client",
