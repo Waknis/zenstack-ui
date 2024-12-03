@@ -5,6 +5,8 @@ export const generalRouter = t.router({
 	createRoom: p
 		.input(CustomRoomCreateSchema)
 		.mutation(async ({ input, ctx }) => {
+			console.log(input);
+
 			const prisma = ctx.prisma;
 
 			await prisma.houseRoom.create({

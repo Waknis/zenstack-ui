@@ -5,8 +5,8 @@ import { ListHeader } from '~client/form/lib/list-header';
 import ListSkeleton from '~client/form/lib/skeleton';
 import { trpc } from '~client/main';
 import { CustomRoomCreateSchema } from '~server/schemas';
-import { type HouseRoomSchema } from '~zenstack/zod/models';
-import { ZenstackList } from '~zenstack-ui/list/list';
+import { type HouseRoom } from '~zenstack/models';
+import { ZSList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/rooms')({
 	component: RoomsLayout,
@@ -32,7 +32,7 @@ function RoomsLayout() {
 
 				<ListHeader title="Rooms" model={modelNames.houseRoom} schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
 
-				<ZenstackList<typeof HouseRoomSchema._type>
+				<ZSList<HouseRoom>
 					model={modelNames.houseRoom}
 					skeleton={<ListSkeleton />}
 					render={room => (

@@ -22,7 +22,7 @@ function ItemsDetail() {
 	const id = Number(params.id);
 
 	return (
-		<div className="form-container">
+		<div className="flex grow flex-col justify-between">
 			<div>
 				<DetailHeader model={modelNames.item} id={id} route="/items" />
 				<MZSUpdateForm model={modelNames.item} id={id} route="/items/$id" schemaOverride={CustomItemSchema} />
@@ -48,8 +48,8 @@ function ItemsDetail() {
 
 	return (
 		<div>
-			<DetailHeader model="Item" id={id} route="/items" />
-			<ZenstackUpdateForm model="Item" id={id} />
+			<DetailHeader model={modelNames.item} id={id} route="/items" />
+			<ZSUpdateForm model={modelNames.item} id={id} />
 		</div>
 	);
 }

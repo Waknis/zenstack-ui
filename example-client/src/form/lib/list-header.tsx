@@ -27,8 +27,8 @@ export function ListHeader({ title, model, ...overrideProps }: ListHeaderProps) 
 			</Modal>
 
 			{/* List Header */}
-			<div className="left-list__header">
-				<p className="left-list__title">{title}</p>
+			<div className="mb-2 mt-3 flex items-center justify-between font-semibold">
+				<p className="text-lg font-semibold">{title}</p>
 				<ActionIcon size="sm" variant="light" onClick={openCreateModal}>
 					<LuPlus size={12} />
 				</ActionIcon>

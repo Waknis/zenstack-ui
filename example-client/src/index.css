@@ -30,6 +30,9 @@ body {
 	/* Temp */
 	--color-hover: light-dark(#eeeeef, #1e1e20);
 	--focus-ring-color: light-dark(#A1A1AA, #D4D4D8);
+
+	/* Layout */
+	--list-margin: 1rem
 }
 
 /* Add custom focus ring color for Mantine (used in theme object) */
@@ -51,30 +54,21 @@ div:has(> .tsqd-open-btn) { @apply hidden; }
 .page {
 	@apply flex size-full;
 
+	.list-margin {
+		@apply mx-[var(--list-margin)];
+	}
+
 	.left-list {
-		@apply flex w-2/5 min-w-[40%] max-w-[800px] flex-col border-r border-r-bd-light px-4;
-
-		.left-list__header {
-			@apply flex items-center justify-between mb-2 mt-3 font-semibold;
-		}
-
-		.left-list__title {
-			/* @apply mx-4 mb-1 mt-3 text-lg font-semibold; */
-		}
+		@apply flex w-2/5 min-w-[40%] max-w-[800px] flex-col border-r border-r-bd-light;
 	}
 
 	.right-detail {
 		@apply flex flex-col h-full grow p-4 pb-0 size-full;
 	}
-
-	.form-container {
-		@apply flex grow flex-col justify-between;
-	}
-
 }
 
 .list-scrollarea {
-	@apply h-full p-4 py-0;
+	@apply px-[var(--list-margin)] h-full py-0;
 }
 
 .list-item {
@@ -83,13 +77,4 @@ div:has(> .tsqd-open-btn) { @apply hidden; }
 	&[data-selected="true"] {
 		@apply bg-bd-light;
 	}
-}
-
-/* Form Section Gap */
-.form-section > div:not(:first-child) {
-	@apply mt-4;
-}
-
-.custom-form .mantine-Checkbox-root {
-	@apply mt-2;
 }

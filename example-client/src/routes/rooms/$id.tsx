@@ -5,7 +5,7 @@ import { useRef } from 'react';
 import { modelNames, typedModelFields } from '~client/form/form-config';
 import { DetailHeader } from '~client/form/lib/detail-header';
 import MZSUpdateForm from '~client/form/lib/mantine-update-form';
-import { CustomRoomCreateSchema, CustomRoomUpdateSchema } from '~server/schemas';
+import { CustomRoomUpdateSchema } from '~server/schemas';
 import { ZSCustomField, ZSFieldSlot, type ZSFormRef } from '~zenstack-ui/index';
 
 export const Route = createFileRoute('/rooms/$id')({

@@ -15,7 +15,7 @@ plugin zod {
 
 generator client {
 	provider = "prisma-client-js"
-	previewFeatures = ["driverAdapters"]
+	previewFeatures = ["driverAdapters", "fullTextSearch"]
 }
 
 datasource db {
