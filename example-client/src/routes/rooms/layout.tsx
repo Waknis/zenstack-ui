@@ -1,3 +1,4 @@
+import type { HouseRoom } from '@prisma/client';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { meta, modelNames } from '~client/form/form-config';
@@ -5,7 +6,6 @@ import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
 import { trpc } from '~client/main';
 import { CustomRoomCreateSchema } from '~server/schemas';
-import { type HouseRoom } from '~zenstack/models';
 
 export const Route = createFileRoute('/rooms')({
 	component: RoomsLayout,

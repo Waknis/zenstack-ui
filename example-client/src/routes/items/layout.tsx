@@ -1,11 +1,11 @@
 import { TextInput } from '@mantine/core';
+import type { Prisma } from '@prisma/client';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { modelNames } from '~client/form/form-config';
 import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
 import { validateSearch } from '~client/utils/utils';
-import type { Prisma } from '~zenstack/models';
 
 export const Route = createFileRoute('/items')({
 	component: ItemsLayout,

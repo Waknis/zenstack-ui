@@ -1,4 +1,5 @@
 import { FloatingIndicator, Pagination, TextInput, UnstyledButton } from '@mantine/core';
+import { type Prisma } from '@prisma/client';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
@@ -6,7 +7,6 @@ import { modelNames } from '~client/form/form-config';
 import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
 import { validateSearch } from '~client/utils/utils';
-import { type Prisma } from '~zenstack/models';
 import { useZSPagination } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/people')({
