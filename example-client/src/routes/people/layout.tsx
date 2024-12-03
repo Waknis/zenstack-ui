@@ -1,14 +1,13 @@
-import { Button, ScrollArea, TextInput } from '@mantine/core';
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { FloatingIndicator, Pagination, TextInput, UnstyledButton } from '@mantine/core';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 
 import { modelNames } from '~client/form/form-config';
-import ListWrapper from '~client/form/lib/list';
+import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
-import ListSkeleton from '~client/form/lib/skeleton';
 import { validateSearch } from '~client/utils/utils';
-import { useCreateManyPerson } from '~zenstack/hooks';
 import { type Prisma } from '~zenstack/models';
-import { ZSList } from '~zenstack-ui/list/list';
+import { useZSPagination } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/people')({
 	component: PeopleLayout,
@@ -21,13 +20,33 @@ function PeopleLayout() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 
-	const createManyPerson = useCreateManyPerson();
-
+	// Person query - search filter
 	const personQuery = {
-		include: {},
+		include: { },
 		where: { name: { contains: search.search, mode: 'insensitive' } },
 	} satisfies Prisma.PersonFindManyArgs;
 	type PersonPayload = Prisma.PersonGetPayload<typeof personQuery>;
+
+	// Pagination
+	const pagination = useZSPagination({
+		model: modelNames.person,
+		pageSize: 10,
+		query: personQuery,
+	});
+	useEffect(() => {
+		// Reset pagination when search changes
+		pagination.goToPage(1);
+	}, [search.search]);
+
+	// List Mode Controller
+	const modes = ['normal', 'infinite', 'paginated'] as const;
+	const [listMode, setListMode] = useState<'normal' | 'infinite' | 'paginated'>('normal');
+	const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null);
+	const [controlsRefs, setControlsRefs] = useState<Record<string, HTMLButtonElement | null>>({});
+	const setControlRef = (mode: string) => (node: HTMLButtonElement | null) => {
+		controlsRefs[mode] = node;
+		setControlsRefs(controlsRefs);
+	};
 
 	return (
 		<div className="page">
@@ -43,52 +62,86 @@ function PeopleLayout() {
 						placeholder="Search"
 						value={search.search || ''}
 						onChange={e => navigate({ search: { search: e.target.value } })}
-						className="mb-4"
+						className="mb-2"
 					/>
 
-					{/* Generator */}
-					<Button
-						className="min-h-8"
-						onClick={() => {
-							const randomNames = [
-								'Liam', 'Emma', 'Noah', 'Olivia', 'Ethan', 'Ava', 'Mason', 'Sophia', 'Lucas', 'Isabella',
-								'Oliver', 'Mia', 'Elijah', 'Charlotte', 'William', 'Amelia', 'James', 'Harper', 'Benjamin', 'Evelyn',
-								'Henry', 'Abigail', 'Alexander', 'Emily', 'Sebastian', 'Elizabeth', 'Jack', 'Sofia', 'Daniel', 'Avery',
-								'Michael', 'Ella', 'Samuel', 'Scarlett', 'David', 'Victoria', 'Joseph', 'Madison', 'Carter', 'Luna',
-								'Owen', 'Grace', 'Wyatt', 'Chloe', 'John', 'Penelope', 'Luke', 'Layla', 'Gabriel', 'Riley',
-								'Anthony', 'Zoey', 'Isaac', 'Nora', 'Grayson', 'Lily', 'Julian', 'Eleanor', 'Matthew', 'Hannah',
-								'Leo', 'Lillian', 'Nathan', 'Addison', 'Thomas', 'Aubrey', 'Caleb', 'Ellie', 'Josh', 'Stella',
-								'Ryan', 'Natalie', 'Adrian', 'Zoe', 'Adam', 'Leah', 'Ian', 'Hazel', 'Eric', 'Violet',
-								'Wesley', 'Aurora', 'Austin', 'Savannah', 'Jordan', 'Audrey', 'Colin', 'Brooklyn', 'Blake', 'Bella',
-								'Steven', 'Claire', 'Miles', 'Skylar', 'Robert', 'Lucy', 'Roman', 'Paisley', 'Carson', 'Everly',
-								'Cooper', 'Anna', 'Kyle', 'Caroline', 'Parker', 'Nova', 'Marcus', 'Genesis', 'Vincent', 'Emilia',
-							];
-
-							createManyPerson.mutateAsync({
-								skipDuplicates: true,
-								data: randomNames.map(name => ({
-									name,
-									roomId: 29,
-								})),
-							});
-						}}
-					>Generate 100 Names
-					</Button>
+					{/* List Mode Control */}
+					<div className="relative mb-2 flex rounded border border-bd-light p-1" ref={setRootRef}>
+						<FloatingIndicator
+							target={controlsRefs[listMode]}
+							parent={rootRef}
+							className="rounded bg-bd-light shadow-sm"
+						/>
+						{modes.map(mode => (
+							<UnstyledButton
+								variant="unstyled"
+								key={mode}
+								className="z-10 flex-1 py-1 text-center text-sm capitalize"
+								ref={setControlRef(mode)}
+								onClick={() => setListMode(mode)}
+							>
+								{mode}
+							</UnstyledButton>
+						))}
+					</div>
 				</div>
 
-				{/* List */}
-				<ListWrapper<PersonPayload>
-					model={modelNames.person}
-					query={personQuery}
-					route="/people/$id"
-					itemId={name}
-					search={search.search}
-					render={person => (
-						<>
+				{/* List - Normal */}
+				{listMode === 'normal' && (
+					<List<PersonPayload>
+						mode="normal"
+						model={modelNames.person}
+						query={personQuery}
+						route="/people/$id"
+						itemId={name}
+						search={search}
+						render={person => (
 							<p className="text-sm">{person.name}</p>
-						</>
-					)}
-				/>
+						)}
+					/>
+				)}
+
+				{/* List - Infinite */}
+				{listMode === 'infinite' && (
+					<List<PersonPayload>
+						mode="infinite"
+						pageSize={10}
+						model={modelNames.person}
+						query={personQuery}
+						route="/people/$id"
+						itemId={name}
+						search={search}
+						render={person => (
+							<p className="text-sm">{person.name}</p>
+						)}
+					/>
+				)}
+
+				{/* List - Paginated */}
+				{listMode === 'paginated' && (
+					<>
+						<List<PersonPayload>
+							mode="paginated"
+							pagination={pagination}
+							route="/people/$id"
+							itemId={name}
+							search={search}
+							render={person => (
+								<p className="text-sm">{person.name}</p>
+							)}
+						/>
+						<div className="list-margin items-center justify-center py-2">
+							<Pagination
+								siblings={1}
+								withEdges
+								boundaries={1}
+								value={pagination.page}
+								total={pagination.totalPages}
+								onChange={page => pagination.goToPage(page)}
+							/>
+						</div>
+					</>
+				)}
 
 			</div>
 

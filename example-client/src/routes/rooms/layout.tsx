@@ -1,12 +1,11 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { meta, modelNames } from '~client/form/form-config';
+import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
-import ListSkeleton from '~client/form/lib/skeleton';
 import { trpc } from '~client/main';
 import { CustomRoomCreateSchema } from '~server/schemas';
 import { type HouseRoom } from '~zenstack/models';
-import { ZSList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/rooms')({
 	component: RoomsLayout,
@@ -30,21 +29,18 @@ function RoomsLayout() {
 			{/* List View */}
 			<div className="left-list">
 
-				<ListHeader title="Rooms" model={modelNames.houseRoom} schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
+				<div className="list-margin">
+					{/* Header */}
+					<ListHeader title="Rooms" model={modelNames.houseRoom} schemaOverride={CustomRoomCreateSchema} overrideSubmit={createRoom.mutateAsync} metadataOverride={metadataOverride} />
+				</div>
 
-				<ZSList<HouseRoom>
+				<List<HouseRoom>
+					mode="normal"
 					model={modelNames.houseRoom}
-					skeleton={<ListSkeleton />}
+					route="/rooms/$id"
+					itemId={id}
 					render={room => (
-						<Link
-							key={room.id}
-							to="/rooms/$id"
-							params={{ id: room.id.toString() }}
-							className="list-item"
-							data-selected={room.id === id}
-						>
-							<p className="text-sm">{room.name}</p>
-						</Link>
+						<p className="text-sm">{room.name}</p>
 					)}
 				/>
 			</div>

@@ -4,15 +4,16 @@ import { Link } from '@tanstack/react-router';
 
 import ListSkeleton from '~client/form/lib/skeleton';
 import type { RouteFullPaths } from '~client/routes/-sidebar';
+import type { SearchParams } from '~client/utils/utils';
 import { ZSList, type ZSListProps } from '~zenstack-ui/list/list';
 
-interface ListWrapperProps<T> extends ZSListProps<T> {
+type ListWrapperProps<T> = ZSListProps<T> & {
 	route: RouteFullPaths
 	itemId?: number | string
-	search?: string
-}
+	search?: SearchParams
+};
 
-function ListWrapper<T extends Record<string, any>>({ itemId, search, route, ...zsListProps }: ListWrapperProps<T>) {
+function List<T extends Record<string, any>>({ itemId, search, route, ...zsListProps }: ListWrapperProps<T>) {
 	return (
 		<ScrollArea className="list-scrollarea">
 			<ZSList<T>
@@ -40,4 +41,4 @@ function ListWrapper<T extends Record<string, any>>({ itemId, search, route, ...
 	);
 }
 
-export default ListWrapper;
+export default List;

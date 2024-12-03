@@ -78,3 +78,10 @@ div:has(> .tsqd-open-btn) { @apply hidden; }
 		@apply bg-bd-light;
 	}
 }
+
+/* Center mantine pagination controls */
+.mantine-Pagination-root {
+	.mantine-Group-root {
+		@apply justify-center;
+	}
+}

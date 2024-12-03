@@ -1,13 +1,11 @@
-import { ScrollArea, TextInput } from '@mantine/core';
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
+import { TextInput } from '@mantine/core';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { modelNames } from '~client/form/form-config';
-import ListWrapper from '~client/form/lib/list';
+import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
-import ListSkeleton from '~client/form/lib/skeleton';
 import { validateSearch } from '~client/utils/utils';
 import type { Prisma } from '~zenstack/models';
-import { ZSList } from '~zenstack-ui/list/list';
 
 export const Route = createFileRoute('/items')({
 	component: ItemsLayout,
@@ -46,12 +44,12 @@ function ItemsLayout() {
 				</div>
 
 				{/* List */}
-				<ListWrapper<ItemPayload>
+				<List<ItemPayload>
 					model={modelNames.item}
 					query={itemQuery}
 					route="/items/$id"
 					itemId={itemId}
-					search={search.search}
+					search={search}
 					render={item => (
 						<>
 							<p className="text-sm">{item.name}</p>

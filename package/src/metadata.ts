@@ -77,6 +77,11 @@ export type UseQueryHook<T> = (options?: any) => {
 	data: T[]
 };
 
+// Type for count hooks
+export type UseCountHook<T> = (options?: any) => {
+	data: number
+};
+
 export type UseFindUniqueHook<T> = (options?: any) => {
 	data: T
 	isLoading: boolean
