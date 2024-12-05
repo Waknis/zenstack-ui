@@ -1,10 +1,10 @@
 # zenstack-ui
 
-Customizable react components for zenstack and prisma (forms/lists/etc.)
+Customizable react components for zenstack and prisma. For now, forms (create/update) and lists (normal/infinite scroll/paginated) are supported.
 
-This library is a work in progress, and may not be ready for production yet.
 
-Currently, you can use it to add form components that automatically generate based on your zmodel schema. With a single component, input fields that match the field types in your zmodel are generated with default values, validation rules, keyboard shortcuts, and more.
+### Forms
+Automatically generate form components based on your zmodel schema. With a single component, input fields that match the field types in your zmodel are generated with default values, validation rules, keyboard shortcuts, and more. You can create an element map to customize which UI element is used for each field type.
 
 [Read the docs to learn more](https://kirankunigiri.notion.site/zenstack-ui-docs-13be451fa71180c7b446ea03eb6e02f6)
 
@@ -12,7 +12,7 @@ Currently, you can use it to add form components that automatically generate bas
 
 ![Zenstack UI Example](https://i.imgur.com/XwkhmDe.png)
 
-This demo also serves as a great starter template for working with the following stack: react + zenstack + cloudflare workers. [Read docs for setting up the demo project yourself here](https://kirankunigiri.notion.site/Demo-Setup-13ce451fa71180378d97db65566cf357).
+This demo also serves as a great starter template for working with the following stack: react + zenstack + cloudflare workers. [Read docs for setting up the demo project yourself here](https://kirankunigiri.notion.site/Demo-Setup-13ce451fa71180378d97db65566cf357). zenstack-ui is headless, but the demo project uses Mantine as an example for how to integrate it with your favorite UI react component library.
 
 Here's an example from the demo. After running zenstack generation, you can pass the model name (ex: "Item") to any ZenstackForm component to create a fully functional form.
 
@@ -58,3 +58,21 @@ If you want to customize your forms, you can use slot placeholders or custom ele
 ```
 
 You can see the results in the demo! There are many customization options as well, read the docs to learn more.
+
+### Lists
+
+Generate type-safe lists with custom prisma queries. Loading states are automatically handled. Easily switch between normal/infinite scroll/paginated modes. See [`list.tsx`](https://github.com/kirankunigiri/zenstack-ui/blob/main/package/src/list/list.tsx) for an example implementation.
+
+```tsx
+<ZSList<PersonPayload>
+    mode="normal" // change modes with "pagination" or "infinite"
+    model={modelNames.person}
+    query={personQuery} // optional! pass in typed prisma queries
+    skeleton={<ListSkeleton />} // an optional loading skeleton
+    render={person => ( // this object is type-safe based on your model or query
+        <p className="list-item">{person.name}</p>
+    )}
+/>
+```
+
+You can try all 3 list modes in [this demo page](https://zenstack-ui-demo.kirankunigiri.com/list).
