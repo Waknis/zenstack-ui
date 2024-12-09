@@ -36,11 +36,12 @@ export interface Field {
 	attributes?: Attribute[]
 	isOptional?: boolean
 
-	// custom fields for use by ZenstackForm
+	// custom fields for use by ZSForm
 	/** The label to display for the field */
 	label?: string
 	placeholder?: string
 	hidden?: boolean
+	order?: number
 	/** The field of the reference model to display in the reference picker */
 	displayFieldForReferencePicker?: string
 	dependsOn?: string[]

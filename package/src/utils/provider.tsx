@@ -17,7 +17,29 @@ export interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButton
 export type SubmitType = 'create' | 'update';
 export type MapSubmitTypeToButton = Record<SubmitType, React.ElementType<SubmitButtonProps>>;
 
-export interface ZenstackUIConfigType {
+export interface ZenStackUIOptions {
+	/** Whether to show unordered fields first or last */
+	showOrderedFieldsFirst: boolean
+	/** Whether to hide the submit button */
+	showSubmitButton: boolean
+	/** Whether to hide the update button */
+	showUpdateButton: boolean
+	/** Whether to show error messages */
+	showErrorMessage: boolean
+	/** Loading placeholder text */
+	loadingPlaceholder: string
+}
+
+/** Returns options with defaults */
+const getDefaultOptions = ({
+	showOrderedFieldsFirst = true,
+	showSubmitButton = true,
+	showUpdateButton = true,
+	showErrorMessage = true,
+	loadingPlaceholder = 'Loading...',
+}: Partial<ZenStackUIOptions>): ZenStackUIOptions => ({ showOrderedFieldsFirst, showSubmitButton, showUpdateButton, showErrorMessage, loadingPlaceholder });
+
+export interface ZSUIConfig {
 	schemas: Record<string, Schema>
 	metadata: Metadata
 	elementMap: MapFieldTypeToElement
@@ -30,27 +52,36 @@ export interface ZenstackUIConfigType {
 
 	/** Transform enum labels for display. For example, convert 'first_name' to 'First Name' */
 	enumLabelTransformer?: (label: string) => string
+
+	/** List of options */
+	options: ZenStackUIOptions
 }
 
-const ZenstackUIContext = createContext<ZenstackUIConfigType | null>(null);
+/** The create type for use by the developer. This has options as optional since we create a default options object anyways. */
+export interface ZenStackUIConfigCreate extends Omit<ZSUIConfig, 'options'> {
+	options?: Partial<ZenStackUIOptions>
+}
+
+const ZenStackUIContext = createContext<ZSUIConfig | null>(null);
 
 export function useZenstackUIProvider() {
-	const context = useContext(ZenstackUIContext);
+	const context = useContext(ZenStackUIContext);
 	if (!context) {
 		throw new Error('zenstack-ui components must be used within a ZenstackUIProvider');
 	}
 	return context;
 }
 
-interface ZenstackUIProviderProps {
-	config: ZenstackUIConfigType
+interface ZenStackUIProviderProps {
+	config: ZenStackUIConfigCreate
 	children: React.ReactNode
 }
 
-export function ZenstackUIProvider(props: ZenstackUIProviderProps) {
+export function ZenStackUIProvider(props: ZenStackUIProviderProps) {
+	const options = getDefaultOptions(props.config.options || {});
 	return (
-		<ZenstackUIContext.Provider value={props.config}>
+		<ZenStackUIContext.Provider value={{ ...props.config, options }}>
 			{props.children}
-		</ZenstackUIContext.Provider>
+		</ZenStackUIContext.Provider>
 	);
 }

@@ -1,4 +1,5 @@
 import { Field, Metadata } from '../metadata';
+import { ZenStackUIOptions } from './provider';
 
 export const getModelFields = (metadata: Metadata, model: string) => {
 	// Convert the first letter to lowercase to get the fields
@@ -9,4 +10,11 @@ export const getModelFields = (metadata: Metadata, model: string) => {
 
 export const getIdField = (fields: Record<string, Field>) => {
 	return Object.values(fields).find(field => field.isId)!;
+};
+
+export const applyOptionsOverrides = (originalOptions: ZenStackUIOptions, overrides?: Partial<ZenStackUIOptions>) => {
+	return {
+		...originalOptions,
+		...overrides,
+	};
 };

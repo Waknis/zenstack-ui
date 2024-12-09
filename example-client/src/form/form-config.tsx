@@ -1,5 +1,4 @@
-import { Checkbox, MultiSelect, NumberInput, TextInput } from '@mantine/core';
-import { Button } from '@mantine/core';
+import { Button, Checkbox, MultiSelect, NumberInput, TextInput } from '@mantine/core';
 
 import { SearchableSelect } from '~client/form/lib/searchable-select';
 import { queryClient } from '~client/utils/query-client';
@@ -7,7 +6,7 @@ import * as hooks from '~zenstack/hooks';
 import metadata from '~zenstack/hooks/__model_meta';
 import * as schemas from '~zenstack/zod/models';
 import { type Field, FieldType } from '~zenstack-ui/metadata';
-import type { MapFieldTypeToElement, MapSubmitTypeToButton, SubmitButtonProps, ZenstackUIConfigType } from '~zenstack-ui/utils/provider';
+import type { MapFieldTypeToElement, MapSubmitTypeToButton, SubmitButtonProps, ZenStackUIConfigCreate } from '~zenstack-ui/utils/provider';
 
 // --------------------------------------------------------------------------------
 // Form Config - Element Mapping
@@ -84,6 +83,8 @@ export const meta = metadata as EnhancedMetadata<typeof metadata>;
 meta.models.item.fields.id.hidden = true;
 meta.models.houseRoom.fields.id.hidden = true;
 meta.models.houseRoom.fields.aiSummary.label = 'AI Generated Summary';
+meta.models.item.fields.category.order = 2;
+meta.models.item.fields.name.order = 1;
 
 // All forms that reference the room model will use the room name instead of id in the Select component
 meta.models.houseRoom.fields.id.displayFieldForReferencePicker = meta.models.houseRoom.fields.name.name;
@@ -100,7 +101,7 @@ meta.models.item.fields.ownerName.filter = (itemFields: typeof meta.models.item.
 // --------------------------------------------------------------------------------
 // Export config
 // --------------------------------------------------------------------------------
-export const zenstackUIConfig: ZenstackUIConfigType = {
+export const zsuiConfig: ZenStackUIConfigCreate = {
 	hooks,
 	schemas,
 	metadata: meta,
@@ -109,4 +110,8 @@ export const zenstackUIConfig: ZenstackUIConfigType = {
 	enumLabelTransformer: (label: string) => label.replace(/_/g, ' '),
 	globalClassName: 'flex flex-col gap-2',
 	queryClient,
+	options: {
+		// Example of using custom options
+		// showOrderedFieldsFirst: false,
+	},
 };

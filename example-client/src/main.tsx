@@ -17,13 +17,13 @@ import { createTRPCReact } from '@trpc/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import { zenstackUIConfig } from '~client/form/form-config';
+import { zsuiConfig } from '~client/form/form-config';
 import { theme } from '~client/routes/-mantine-theme';
 import { routeTree } from '~client/routeTree.gen';
 import { queryClient } from '~client/utils/query-client';
 import type { AppRouter } from '~server/api';
 import { Provider as ZenStackHooksProvider } from '~zenstack/hooks';
-import { ZenstackUIProvider } from '~zenstack-ui/utils/provider';
+import { ZenStackUIProvider } from '~zenstack-ui/utils/provider';
 
 // --------------------------------------------------------------------------------
 // TanStack Router Setup
@@ -84,7 +84,7 @@ if (!rootElement.innerHTML) {
 				<QueryClientProvider client={queryClient}>
 					<ZenStackHooksProvider value={{ endpoint: `${serverUrl}/api/model` }}>
 						<MantineProvider theme={theme} defaultColorScheme="dark">
-							<ZenstackUIProvider config={zenstackUIConfig}>
+							<ZenStackUIProvider config={zsuiConfig}>
 								<ModalsProvider>
 									<RouterProvider router={router} />
 									<ReactQueryDevtools initialIsOpen={false} />
@@ -99,7 +99,7 @@ if (!rootElement.innerHTML) {
 										toggleButtonProps={{ id: tanStackRouterDevToolsOpenBtnId, className: '!hidden' }}
 									/>
 								</ModalsProvider>
-							</ZenstackUIProvider>
+							</ZenStackUIProvider>
 						</MantineProvider>
 					</ZenStackHooksProvider>
 				</QueryClientProvider>

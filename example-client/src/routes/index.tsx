@@ -6,6 +6,6 @@ export const Route = createFileRoute('/')({
 
 function RouteComponent() {
 	return (
-		<Navigate to="/items" />
+		<Navigate to="/items" search={{ search: undefined }} />
 	);
 }

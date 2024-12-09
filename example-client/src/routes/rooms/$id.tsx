@@ -6,7 +6,8 @@ import { modelNames, typedModelFields } from '~client/form/form-config';
 import { DetailHeader } from '~client/form/lib/detail-header';
 import MZSUpdateForm from '~client/form/lib/mantine-update-form';
 import { CustomRoomUpdateSchema } from '~server/schemas';
-import { ZSCustomField, ZSFieldSlot, type ZSFormRef } from '~zenstack-ui/index';
+import type { ZSFormRef } from '~zenstack-ui/form/base';
+import { ZSCustomField, ZSFieldSlot } from '~zenstack-ui/index';
 
 export const Route = createFileRoute('/rooms/$id')({
 	component: PeopleDetail,
