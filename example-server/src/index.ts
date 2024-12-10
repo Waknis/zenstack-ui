@@ -6,7 +6,7 @@ import { PrismaNeon } from '@prisma/adapter-neon'; // Neon
 import { PrismaClient } from '@prisma/client';
 import { createHonoHandler } from '@zenstackhq/server/hono';
 import { Hono } from 'hono';
-import { cors as honoCors } from 'hono/cors';
+import { cors } from 'hono/cors';
 import ws from 'ws';
 
 import { router } from '~server/api';
@@ -14,7 +14,6 @@ import type { TrpcContext } from '~server/trpc';
 import { enhance } from '~zenstack/enhance-edge';
 
 interface Bindings {
-	ENVIRONMENT: 'development' | 'production'
 	DATABASE_URL: string // your postgres database URL
 	WEBSITE_URL: string // your client website URL (ex: hosted on cloudflare pages)
 }
@@ -23,8 +22,8 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 // Cors middleware
 app.use('*', async (c, next) => {
-	return honoCors({
-		origin: c.env.ENVIRONMENT === 'development' ? '*' : c.env.WEBSITE_URL,
+	return cors({
+		origin: c.env.WEBSITE_URL,
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowHeaders: ['Content-Type', 'Authorization', 'x-trpc-source'],
 	})(c, next);
@@ -68,7 +67,4 @@ app.use(
 	}),
 );
 
-export default {
-	port: 3003,
-	fetch: app.fetch,
-};
+export default app;

@@ -5,6 +5,3 @@ node_compat = true
 
 [dev]
 port = 3003
-
-[env.dev.vars]
-ENVIRONMENT = "development"

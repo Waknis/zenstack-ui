@@ -57,15 +57,9 @@ const ReactQueryDevtoolsProduction = React.lazy(() =>
 );
 
 // --------------------------------------------------------------------------------
-// Server URL Setup
-let serverUrl;
-if (import.meta.env.MODE === 'development') {
-	// Dev - use localhost server port (check example-server/wrangler.toml for port)
-	serverUrl = `http://localhost:3003`;
-} else {
-	// Prod - use production server URL
-	serverUrl = import.meta.env.VITE_SERVER_URL;
-}
+// Server URL Setup - check vite.config.ts for dev server proxy
+let serverUrl = '';
+if (import.meta.env.MODE !== 'development') serverUrl = import.meta.env.VITE_SERVER_URL;
 
 // --------------------------------------------------------------------------------
 // TRPC Setup
