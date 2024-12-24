@@ -1,6 +1,6 @@
 # zenstack-ui
 
-Customizable react components for zenstack and prisma. For now, forms (create/update) and lists (normal/infinite scroll/paginated) are supported.
+Customizable react components for zenstack and prisma. Forms (create/update) and lists (normal/infinite scroll/paginated) are supported.
 
 
 ### Forms
