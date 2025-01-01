@@ -22,10 +22,15 @@ function PeopleDetail() {
 	// Example of useRef to get the form
 	const formRef = useRef<ZSFormRef>(null);
 
+	// Example of how to react to form changes
+	const onFormChange = () => {
+		console.log(formRef.current?.form.isDirty());
+	};
+
 	return (
 		<div>
 			<DetailHeader model={modelNames.houseRoom} id={id} route="/rooms" />
-			<MZSUpdateForm formRef={formRef} model={modelNames.houseRoom} id={id} route="/rooms/$id" schemaOverride={CustomRoomUpdateSchema}>
+			<MZSUpdateForm onFormChange={onFormChange} formRef={formRef} model={modelNames.houseRoom} id={id} route="/rooms/$id" schemaOverride={CustomRoomUpdateSchema}>
 				<Divider mt="lg" my="md" variant="dashed" />
 				<div className="flex w-full gap-4">
 

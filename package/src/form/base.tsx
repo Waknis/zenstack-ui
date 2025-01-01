@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from '@mantine/form';
-import { cloneElement, isValidElement, useCallback, useMemo } from 'react';
+import { cloneElement, isValidElement, useCallback, useEffect, useMemo } from 'react';
 import React from 'react';
 import { ZodSchema } from 'zod';
 
@@ -21,6 +21,7 @@ export interface ZSFormOverrideProps {
 	metadataOverride?: Metadata
 	optionsOverride?: Partial<ZenStackUIOptions>
 	formRef?: React.RefObject<ZSFormRef>
+	onFormChange?: (values: any) => void
 }
 
 interface ZSSharedFormProps extends ZSFormOverrideProps {
@@ -167,6 +168,13 @@ export const ZSBaseForm = (props: ZSBaseFormProps) => {
 	const isDirty = useMemo(() => {
 		return props.type === 'update' && Object.values(props.form.getDirty()).some(isDirty => isDirty);
 	}, [props.type, props.form.getDirty()]);
+
+	// Add effect to watch form values
+	useEffect(() => {
+		if (props.onFormChange) {
+			props.onFormChange(props.form.values);
+		}
+	}, [props, props.form.values, props.onFormChange]);
 
 	return (
 		<>
