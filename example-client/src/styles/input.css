@@ -89,6 +89,28 @@
 	color: var(--mantine-color-dimmed);
 }
 
+/* -------------------------------------------------------------------------------- */
+/* SegmentedControl */
+/* -------------------------------------------------------------------------------- */
+.mantine-SegmentedControl-root {
+	background-color: var(--mantine-color-body);
+	border-color: var(--bd-light);
+	border-radius: 6px;
+	border-width: 1px;
+}
+
+.mantine-SegmentedControl-label {
+	padding: 4px 0px; /* Makes the entire component smaller */
+}
+
+.mantine-SegmentedControl-control {
+	margin-top: -1px;
+	margin-bottom: 1px;
+}
+
+.mantine-SegmentedControl-indicator {
+	background-color: var(--btn-secondary);
+}
 
 /* -------------------------------------------------------------------------------- */
 /* Dirty Fields Indicator */

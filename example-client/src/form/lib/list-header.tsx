@@ -2,7 +2,8 @@ import { ActionIcon, Modal } from '@mantine/core';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { LuPlus } from 'react-icons/lu';
 
-import { ZSCreateForm, type ZSFormOverrideProps } from '~zenstack-ui/form/form';
+import { ZSCreateForm } from '~zenstack-ui/form/form';
+import type { ZSFormOverrideProps } from '~zenstack-ui/index';
 
 interface ListHeaderProps extends ZSFormOverrideProps {
 	title: string

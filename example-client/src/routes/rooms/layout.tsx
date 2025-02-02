@@ -4,6 +4,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { meta, modelNames } from '~client/form/form-config';
 import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
+import { OutletWrapper } from '~client/form/lib/outlet-wrapper';
 import { trpc } from '~client/main';
 import { CustomRoomCreateSchema } from '~server/schemas';
 
@@ -46,9 +47,7 @@ function RoomsLayout() {
 			</div>
 
 			{/* Detail View */}
-			<div className="right-detail">
-				{id ? <Outlet /> : <p>Select a room to view details</p>}
-			</div>
+			<OutletWrapper route={Route} />
 		</div>
 	);
 }

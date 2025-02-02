@@ -1,10 +1,13 @@
-import { TextInput } from '@mantine/core';
+import { Modal, TextInput } from '@mantine/core';
 import type { Prisma } from '@prisma/client';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { modelNames } from '~client/form/form-config';
 import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
+import { OutletWrapper } from '~client/form/lib/outlet-wrapper';
+import type { RouteFullPaths } from '~client/routes/-sidebar';
+import { useIsMobile } from '~client/routes/-sidebar';
 import { validateSearch } from '~client/utils/utils';
 
 export const Route = createFileRoute('/items')({
@@ -17,6 +20,7 @@ function ItemsLayout() {
 	const itemId = Number(params.id);
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
+	const isMobile = useIsMobile();
 
 	const itemQuery = {
 		include: {},
@@ -61,9 +65,7 @@ function ItemsLayout() {
 			</div>
 
 			{/* Detail View */}
-			<div className="right-detail overflow-y-scroll">
-				{itemId ? <Outlet /> : <p>Select an item to view details</p>}
-			</div>
+			<OutletWrapper route={Route} />
 		</div>
 	);
 }

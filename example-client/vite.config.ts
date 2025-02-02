@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // See example-server/wrangler.toml for server port
-const SERVER_URL = 'http://localhost:3003'
+const SERVER_URL = 'http://localhost:3003';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,7 +18,7 @@ export default defineConfig({
 	envDir: '../',
 	server: {
 		proxy: {
-			'/api': { target: SERVER_URL, },
+			'/api': { target: SERVER_URL },
 			'/trpc': { target: SERVER_URL },
 		},
 	},

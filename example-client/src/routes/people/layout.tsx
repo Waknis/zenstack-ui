@@ -1,4 +1,4 @@
-import { FloatingIndicator, Pagination, TextInput, UnstyledButton } from '@mantine/core';
+import { FloatingIndicator, Pagination, SegmentedControl, Space, TextInput, UnstyledButton } from '@mantine/core';
 import { type Prisma } from '@prisma/client';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { modelNames } from '~client/form/form-config';
 import List from '~client/form/lib/list';
 import { ListHeader } from '~client/form/lib/list-header';
+import { OutletWrapper } from '~client/form/lib/outlet-wrapper';
 import { validateSearch } from '~client/utils/utils';
 import { useZSPagination } from '~zenstack-ui/list/list';
 
@@ -13,6 +14,8 @@ export const Route = createFileRoute('/people')({
 	component: PeopleLayout,
 	validateSearch,
 });
+
+type ListMode = 'normal' | 'infinite' | 'paginated';
 
 function PeopleLayout() {
 	const params = Route.useParams() as { id?: string };
@@ -39,14 +42,8 @@ function PeopleLayout() {
 	}, [search.search]);
 
 	// List Mode Controller
-	const modes = ['normal', 'infinite', 'paginated'] as const;
-	const [listMode, setListMode] = useState<'normal' | 'infinite' | 'paginated'>('normal');
-	const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null);
-	const [controlsRefs, setControlsRefs] = useState<Record<string, HTMLButtonElement | null>>({});
-	const setControlRef = (mode: string) => (node: HTMLButtonElement | null) => {
-		controlsRefs[mode] = node;
-		setControlsRefs(controlsRefs);
-	};
+	const modes: ListMode[] = ['normal', 'infinite', 'paginated'] as const;
+	const [listMode, setListMode] = useState<ListMode>('normal');
 
 	return (
 		<div className="page">
@@ -65,25 +62,15 @@ function PeopleLayout() {
 						className="mb-2"
 					/>
 
-					{/* List Mode Control */}
-					<div className="relative mb-2 flex rounded border border-bd-light p-1" ref={setRootRef}>
-						<FloatingIndicator
-							target={controlsRefs[listMode]}
-							parent={rootRef}
-							className="rounded bg-bd-light shadow-sm"
-						/>
-						{modes.map(mode => (
-							<UnstyledButton
-								variant="unstyled"
-								key={mode}
-								className="z-10 flex-1 py-1 text-center text-sm capitalize"
-								ref={setControlRef(mode)}
-								onClick={() => setListMode(mode)}
-							>
-								{mode}
-							</UnstyledButton>
-						))}
-					</div>
+					<SegmentedControl
+						className="w-full capitalize"
+						value={listMode}
+						onChange={value => setListMode(value as ListMode)}
+						withItemsBorders={false}
+						data={modes.map(mode => ({ label: mode, value: mode }))}
+					/>
+
+					<Space h="sm" />
 				</div>
 
 				{/* List - Normal */}
@@ -146,9 +133,7 @@ function PeopleLayout() {
 			</div>
 
 			{/* Detail View */}
-			<div className="right-detail">
-				{name ? <Outlet /> : <p>Select a person to view details</p>}
-			</div>
+			<OutletWrapper route={Route} />
 		</div>
 	);
 }

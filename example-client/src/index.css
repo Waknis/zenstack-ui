@@ -50,7 +50,7 @@ body {
 /* Hide react query devtools */
 div:has(> .tsqd-open-btn) { @apply hidden; }
 
-/* Main Page Styles */
+/* Main Page */
 .page {
 	@apply flex size-full;
 
@@ -59,13 +59,42 @@ div:has(> .tsqd-open-btn) { @apply hidden; }
 	}
 
 	.left-list {
-		@apply flex w-2/5 min-w-[40%] max-w-[800px] flex-col border-r border-r-bd-light;
+		@apply flex flex-col border-r border-r-bd-light;
 	}
 
 	.right-detail {
 		@apply flex flex-col h-full grow p-4 pb-0 size-full;
 	}
 }
+
+/* Sidebar */
+.sidebar-link {
+	@apply flex h-8 w-full items-center gap-[10px] rounded-md bg-transparent pl-3 pr-[18px] text-left font-medium capitalize text-shadcn-darkest hover:bg-[var(--color-hover)] dark:text-shadcn-light [&.active]:bg-shadcn-dark [&.active]:text-shadcn-light [&.active]:dark:bg-btn-secondary;
+}
+
+/* Desktop Styles */
+@media (min-width: 48em) {
+	.left-list {
+		@apply w-2/5 min-w-[40%] max-w-[800px];
+	}
+}
+
+/* Mobile Styles */
+@media (max-width: 48em) {
+	.left-list {
+		@apply w-full max-w-full;
+	}
+
+	.sidebar-group-title {
+		@apply text-base font-bold;
+	}
+
+	.sidebar-link {
+		@apply h-10 text-base font-bold;
+	}
+}
+
+/* List */
 
 .list-scrollarea {
 	@apply px-[var(--list-margin)] h-full py-0;
